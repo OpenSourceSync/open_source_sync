@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        @font-face {
+            font-family: MaterialFont;
+            src: url("./fonts/roboto/Roboto-Light.ttf");
+        }
+
+        body {
+            display: block;
+            margin: 0px;
+            height: 448px;
+            width: 365px;
+            background-color: #0A2435;
+        }
+
+        .display {
+            font-family: MaterialFont;
+            text-align: center;
+        }
+
+        .span {
+            outline-style: solid;
+            outline-color: #2F688D;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+        }
+
+        .display img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 1%;
+        }
+
+        .display p {
+            font-size: 20px;
+            color: #EEEEEE;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="span">
+        <div class="display">
+            <video loop height="345" width="345" autoplay>
+                <source src="./images/Splash.mp4" type="video/mp4"> Your browser does not support the video tag.
+            </video>
+            <p>LOADING</p>
+        </div>
+    </div>
+</body>
+
+</html>

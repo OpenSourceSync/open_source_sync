@@ -1,24 +1,66 @@
 {
   "name": "OpenSourceSync",
-  "version": "0.1.0",
-  "description": "Desktop application build with Electron",
-  "repository": "",
-  "scripts": {
-    "postinstall": "install-app-deps"
+  "version": "1.0.0",
+  "description": "Control multiple PCs with a single pair of mouse and keyboard",
+  "main": "main.js",
+  "author": {
+    "name": "Ali Nauman",
+    "email": "ali60351@gmail.com"
   },
-  "devDependencies": {
-    "electron-builder": "19.48.2",
-    "electron": "1.7.9",
-    "gulp": "^3.9.1",
-    "mocha": "^4.0.1",
-    "spectron": "^3.7.2",
-    "webpack-stream": "^3.2.0"
+  "scripts": {
+    "start": "electron .",
+    "pack": "build --dir",
+    "dist": "build"
   },
   "build": {
     "appId": "com.electron.opensourcesync",
     "win": {},
     "mac": {
       "category": "your.app.category.type"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility"
     }
+  },
+  "devDependencies": {
+    "electron": "^1.6.0",
+    "electron-builder": "^20.5.1",
+    "vue-devtools": "^3.1.9"
+  },
+  "dependencies": {
+    "bonjour": "^3.5.0",
+    "clipboard": "^1.7.1",
+    "clipboardy": "^1.2.3",
+    "copy-to-clipboard": "^3.0.8",
+    "global": "^4.3.2",
+    "iohook": "^0.1.13",
+    "jshint": "^2.9.5",
+    "keypress": "^0.2.1",
+    "node-cmake": "^2.3.2",
+    "node-gyp": "^3.6.2",
+    "sortablejs": "^1.7.0",
+    "vuedraggable": "^2.16.0"
+  },
+  "iohook": {
+    "targets": [
+      "node-51",
+      "electron-53"
+    ],
+    "platforms": [
+      "win32",
+      "darwin",
+      "linux"
+    ],
+    "arches": [
+      "x64"
+    ]
   }
 }

@@ -1,0 +1,6 @@
+{
+    "include": [
+      "./js/**/*",
+      "./Homescreen.html"
+    ]
+}
