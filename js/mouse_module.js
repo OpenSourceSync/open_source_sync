@@ -47,6 +47,7 @@ module.exports = {
     },
     startHandlingMouseEvents:function(){
         startIOHookMouseHandlers()
+        console.log("Started listening mouse events!");
     },
     stopHandlingMouseEvents:function(){
         if(hook)

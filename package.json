@@ -46,6 +46,7 @@
     "keypress": "^0.2.1",
     "node-cmake": "^2.3.2",
     "node-gyp": "^3.6.2",
+    "robotjs": "^0.5.1",
     "sortablejs": "^1.7.0",
     "vuedraggable": "^2.16.0"
   },

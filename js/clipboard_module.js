@@ -1,4 +1,4 @@
-const {clipboard} = require('electron')
+const {clipboard} = require('electron');
 var clipboard_content = ""
 var timeoutGenerator
 var connectionModule

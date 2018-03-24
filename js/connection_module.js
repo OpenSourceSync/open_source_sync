@@ -4,10 +4,11 @@ const os = require('os')
 const net = require('net')
 var PORT = 12345;
 var bonjour = require('bonjour')()
-const {clipboard} = require('electron')
-// var robot = require("robotjs");
+const {clipboard} = require('electron');
+var robot = require("robotjs")
 
 var connectedPCs = []
+
 var listOfActiveOSSHosts = []
 var server
 module.exports = {
@@ -21,7 +22,7 @@ module.exports = {
     });
     console.log('BONJOUR STOPPED');
     delete server;
-    console.log('CONN SERVER STOPPED');
+    console.log('CONN server STOPPED');
     // When user clicks on 'Add a PC' on the main machine it searches for all hosts having type 'OSSActiveHost'
     // at port 5867 it adds it to the listOfActiveOSSHosts
 
@@ -53,16 +54,16 @@ module.exports = {
         var client = new net.Socket();
         console.log("connectiong to : ", ipAddress)
         client.connect(PORT, ipAddress, function() {
-            console.log("Connected to : ", ipAddress)
+            console.log("Connected to mouse port: ", ipAddress)
             connectedPCs.push({sockObj: client, name: hostname,ip:ipAddress});
             app.connectedList.push({name: hostname,ip:ipAddress})
             //app.connectedList.push({name: hostname,ip: ipAddress});
-            //client.write('Hello Server!');
+            //client.write('Hello serverMouse!');
 
         });
 
         // Add a 'data' event handler for the client socket
-        // data is what the server sent to this socket
+        // data is what the serverMouse sent to this socket
         client.on('data', function(data) {
             
             //console.log('DATA: ' + data);
@@ -87,12 +88,12 @@ module.exports = {
         console.log('HOST NAME : ' + os.hostname());
         //------------------------------------------------
 
-        // When application starts we start a server on port 5867 that shows its type is 'OSSActiveHost'
+        // When application starts we start a serverMouse on port 5867 that shows its type is 'OSSActiveHost'
         // Somebody else(from another host) asks this machine at port 5867 about its type and it returns 'OSSActiveHost'
         bonjour.publish({ name: os.hostname(), type: 'OSSActiveHost', host: os.hostname(), port: 5867 })
         console.log('BONJOUR STARTED');
         //----------------------------------------Zubair
-        server = net.createServer(function(sock){
+        serverMouse = net.createServer(function(sock){
             sock.on('connect', function(){
                 console.log("Connected to client on its request");
             });
@@ -100,16 +101,16 @@ module.exports = {
                 console.log("Connected to client on its request");
             });
             sock.on('data', function(data){
-                console.log(data.toString());
-                var jsonObj = JSON.parse(data.toString());
+                var obj1= data.toString().split('}')[0]+'}';
+                var jsonObj = JSON.parse(obj1);
 
                 var event= jsonObj.EventName;
                 
                 if(event == "MouseEvent") {
                     var x = jsonObj.x;
                     var y = jsonObj.y;
-                    // robot.moveMouse(x, y);
-                    console.log(x,y);
+                    robot.moveMouse(x, y);
+                    //console.log(x,y);
                 }
                 else {
                     var text = jsonObj.text.toString();
@@ -117,15 +118,12 @@ module.exports = {
                     clipboard.write(text);
                     //clipboard.writeText(data.toString())
                 }
-                
-                
             });
             sock.on('close', function(){
                 console.log("Connection closed!");
             });
-        }).listen(PORT, IP);
-        console.log('CONN SERVER STARTED');
-        //---------------------------------------
+        }).listen(PORT , IP);
+        console.log('Mouse connection serverMouse STARTED');
     },
     sendMouseMovementEventToAllConnected:function(event){
         console.log("Sending mouse movement event to ", connectedPCs.length, " systems")

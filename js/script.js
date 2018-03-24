@@ -88,6 +88,7 @@ var app = new Vue({
         searchDevices: function () {
             this.connectP = false;
             this.selectingP = true;
+            console.log("running");
             connection_module.findActiveOSSDevicesOnLocalNetwork();
             mouse_module.startHandlingMouseEvents()
             clipboard_module.startHandlingClipboardEvents()
