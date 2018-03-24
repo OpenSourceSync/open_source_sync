@@ -51,8 +51,8 @@
   },
   "iohook": {
     "targets": [
-      "node-51",
-      "electron-53"
+      "node-59",
+      "electron-54"
     ],
     "platforms": [
       "win32",
