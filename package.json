@@ -40,6 +40,7 @@
     "clipboard": "^1.7.1",
     "clipboardy": "^1.2.3",
     "copy-to-clipboard": "^3.0.8",
+    "electron-rebuild": "^1.7.3",
     "global": "^4.3.2",
     "iohook": "^0.1.13",
     "jshint": "^2.9.5",
