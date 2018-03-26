@@ -7,9 +7,10 @@ var PORTOTHER= 12346;
 var bonjour = require('bonjour')()
 const {clipboard} = require('electron');
 var robot = require("robotjs")
-
 var connectedPCsMouse = []
 var connectedPCsOthers = []
+
+var connectedPCsList
 
 var listOfActiveOSSHosts = []
 var serverMouse
@@ -61,16 +62,13 @@ module.exports = {
         console.log("connectiong to : ", ipAddress)
         client1.connect(PORTMOUSE , ipAddress, function() {
             console.log("Connected to mouse port: ", ipAddress)
-            connectedPCsMouse.push({sockObj: client1, name: hostname, ip: ipAddress});
-            app.connectedList.push({name: hostname, ip: ipAddress})
-            //app.connectedList.push({name: hostname,ip: ipAddress});
-            //client.write('Hello serverMouse!');
-
+            connectedPCsMouse.push({sockObj: client1, name: hostname,ip:ipAddress});
+            //app.connectedList.push({name: hostname,ip:ipAddress, isActive:false})
         });
         client2.connect(PORTOTHER , ipAddress, function() {
             console.log("Connected to others port: ", ipAddress)
-            connectedPCsOthers.push({sockObj: client2, name: hostname, ip: ipAddress});
-            app.connectedList.push({name: hostname, ip: ipAddress})
+            connectedPCsOthers.push({sockObj: client2, name: hostname,ip:ipAddress});
+            app.connectedList.push({name: hostname,ip:ipAddress, isActive:false, isCentral:false, mouseSockObj:client1, otherSockObj:client2})
             //app.connectedList.push({name: hostname,ip: ipAddress});
             //client.write('Hello serverMouse!');
 
@@ -142,7 +140,7 @@ module.exports = {
                 // clipboard event
                 var text = jsonObj.text.toString();
                 console.log("Clipboard copy event recieved from other system")
-                clipboard.writeText(text);
+                clipboard.writeText(text.toString());
                 //clipboard.writeText(data.toString())
             });
             sock.on('close', function(){
@@ -153,27 +151,64 @@ module.exports = {
     },
     sendMouseMovementEventToAllConnected:function(event){
         console.log("Sending mouse movement event to ", connectedPCsMouse.length, " systems")
-        for(var i=0; i<connectedPCsMouse.length; i++)
+        for(var i=0; i<app.connectedList.length; i++)
         {
             var obj = {
                 "EventName": "MouseEvent",
                 "x": event.x.toString(),
                 "y": event.y.toString()
             }
-            connectedPCsMouse[i].sockObj.write(JSON.stringify(obj));
-            //connectedPCsMouse[i].sockObj.write(event.x.toString()+","+event.y.toString()+',')
+            //connectedPCsMouse[i].sockObj.write(JSON.stringify(obj));
+            //console.log(app.connectedList)
+            if(app.connectedList[i].isCentral==false)
+            {
+                app.connectedList[i].mouseSockObj.write(JSON.stringify(obj));
+            }
         }
     },
     sendClipBoardSyncEventToAllConnected:function(latestClipBoardContent){
         console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
-        for(var i=0; i<connectedPCsOthers.length; i++)
+        for(var i=0; i<app.connectedList.length; i++)
         {
             var obj = {
                 "EventName": "ClipboardEvent",
                 "text": latestClipBoardContent.toString()
             }
-            connectedPCsOthers[i].sockObj.write(JSON.stringify(obj));
-            //connectedPCsOthers[i].sockObj.write(latestClipBoardContent.toString())
+            //connectedPCsOthers[i].sockObj.write(JSON.stringify(obj));
+            //console.log(app.connectedList)
+            if(app.connectedList[i].isCentral==false)
+            {
+                app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
+            }
+        }
+    },
+    sendMouseMovementEventToCurrentlyActiveSystem:function(event){
+        for(var i=0; i<app.connectedList.length; i++)
+        {
+            console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
+            if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
+            {
+                var obj = {
+                "EventName": "MouseEvent",
+                "x": event.x.toString(),
+                "y": event.y.toString()
+                }
+                app.connectedList[i].mouseSockObj.write(JSON.stringify(obj));
+            }
+        }
+    },
+    sendClipBoardSyncEventToCurrentlyActiveSystem:function(latestClipBoardContent){
+        for(var i=0; i<app.connectedList.length; i++)
+        {
+            console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
+            if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
+            {
+                var obj = {
+                "EventName": "ClipboardEvent",
+                "text": latestClipBoardContent.toString()
+                }
+                app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
+            }
         }
     }
 };
