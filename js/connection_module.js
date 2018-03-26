@@ -2,15 +2,18 @@ const path = require('path')
 const url = require('url')
 const os = require('os')
 const net = require('net')
-var PORT = 12345;
+var PORTMOUSE= 12345;
+var PORTOTHER= 12346;
 var bonjour = require('bonjour')()
 const {clipboard} = require('electron');
 var robot = require("robotjs")
 
-var connectedPCs = []
+var connectedPCsMouse = []
+var connectedPCsOthers = []
 
 var listOfActiveOSSHosts = []
-var server
+var serverMouse
+var serverOthers
 module.exports = {
   foo: function () {
     console.log('TEST OUT')
@@ -21,8 +24,10 @@ module.exports = {
         console.log("Unpublishing all services");
     });
     console.log('BONJOUR STOPPED');
-    delete server;
-    console.log('CONN server STOPPED');
+    delete serverMouse;
+    console.log('CONN serverMouse STOPPED');
+    delete serverOthers;
+    console.log('CONN serverOthers STOPPED');
     // When user clicks on 'Add a PC' on the main machine it searches for all hosts having type 'OSSActiveHost'
     // at port 5867 it adds it to the listOfActiveOSSHosts
 
@@ -51,12 +56,21 @@ module.exports = {
 
     },
     connectToAnOSSClient: function (ipAddress, hostname) {
-        var client = new net.Socket();
+        var client1 = new net.Socket();
+        var client2 = new net.Socket();
         console.log("connectiong to : ", ipAddress)
-        client.connect(PORT, ipAddress, function() {
+        client1.connect(PORTMOUSE , ipAddress, function() {
             console.log("Connected to mouse port: ", ipAddress)
-            connectedPCs.push({sockObj: client, name: hostname,ip:ipAddress});
-            app.connectedList.push({name: hostname,ip:ipAddress})
+            connectedPCsMouse.push({sockObj: client1, name: hostname, ip: ipAddress});
+            app.connectedList.push({name: hostname, ip: ipAddress})
+            //app.connectedList.push({name: hostname,ip: ipAddress});
+            //client.write('Hello serverMouse!');
+
+        });
+        client2.connect(PORTOTHER , ipAddress, function() {
+            console.log("Connected to others port: ", ipAddress)
+            connectedPCsOthers.push({sockObj: client2, name: hostname, ip: ipAddress});
+            app.connectedList.push({name: hostname, ip: ipAddress})
             //app.connectedList.push({name: hostname,ip: ipAddress});
             //client.write('Hello serverMouse!');
 
@@ -64,17 +78,19 @@ module.exports = {
 
         // Add a 'data' event handler for the client socket
         // data is what the serverMouse sent to this socket
-        client.on('data', function(data) {
-            
-            //console.log('DATA: ' + data);
-            
-            // Close the client socket completely
-            
+        client1.on('data', function(data) {
+            console.log('Client1 data');
+        });
+        client2.on('data', function(data) {
+            console.log('Client2 data');
         });
 
         // Add a 'close' event handler for the client socket
-        client.on('close', function() {
-            console.log('Connection closed');
+        client1.on('close', function() {
+            console.log('Client1 Connection closed');
+        });
+        client2.on('close', function() {
+            console.log('Client2 Connection closed');
         });
     },
 
@@ -94,9 +110,6 @@ module.exports = {
         console.log('BONJOUR STARTED');
         //----------------------------------------Zubair
         serverMouse = net.createServer(function(sock){
-            sock.on('connect', function(){
-                console.log("Connected to client on its request");
-            });
             sock.on('connection', function(){
                 console.log("Connected to client on its request");
             });
@@ -105,49 +118,62 @@ module.exports = {
                 var jsonObj = JSON.parse(obj1);
 
                 var event= jsonObj.EventName;
-                
-                if(event == "MouseEvent") {
-                    var x = jsonObj.x;
-                    var y = jsonObj.y;
-                    robot.moveMouse(x, y);
-                    //console.log(x,y);
-                }
-                else {
-                    var text = jsonObj.text.toString();
-                    console.log("Clipboard copy event recieved from other system")
-                    clipboard.write(text);
-                    //clipboard.writeText(data.toString())
-                }
+                                
+                var x = jsonObj.x;
+                var y = jsonObj.y;
+                robot.moveMouse(x, y);
             });
             sock.on('close', function(){
                 console.log("Connection closed!");
             });
-        }).listen(PORT , IP);
+        }).listen(PORTMOUSE , IP);
         console.log('Mouse connection serverMouse STARTED');
+        //---------------------------------------
+
+        serverOthers = net.createServer(function(sock){
+            sock.on('connection', function(){
+                console.log("Connected to client on its request");
+            });
+            sock.on('data', function(data){
+                var obj1= data.toString().split('}')[0]+'}';
+                var jsonObj = JSON.parse(obj1);
+
+                var event= jsonObj.EventName;
+                // clipboard event
+                var text = jsonObj.text.toString();
+                console.log("Clipboard copy event recieved from other system")
+                clipboard.writeText(text);
+                //clipboard.writeText(data.toString())
+            });
+            sock.on('close', function(){
+                console.log("Connection closed!");
+            });
+        }).listen(PORTOTHER , IP);
+        console.log('Others connection serverOthers STARTED');
     },
     sendMouseMovementEventToAllConnected:function(event){
-        console.log("Sending mouse movement event to ", connectedPCs.length, " systems")
-        for(var i=0; i<connectedPCs.length; i++)
+        console.log("Sending mouse movement event to ", connectedPCsMouse.length, " systems")
+        for(var i=0; i<connectedPCsMouse.length; i++)
         {
             var obj = {
                 "EventName": "MouseEvent",
                 "x": event.x.toString(),
                 "y": event.y.toString()
             }
-            connectedPCs[i].sockObj.write(JSON.stringify(obj));
-            //connectedPCs[i].sockObj.write(event.x.toString()+","+event.y.toString()+',')
+            connectedPCsMouse[i].sockObj.write(JSON.stringify(obj));
+            //connectedPCsMouse[i].sockObj.write(event.x.toString()+","+event.y.toString()+',')
         }
     },
     sendClipBoardSyncEventToAllConnected:function(latestClipBoardContent){
-        console.log("Sending clipboard synchronize event to ", connectedPCs.length, " systems")
-        for(var i=0; i<connectedPCs.length; i++)
+        console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
+        for(var i=0; i<connectedPCsOthers.length; i++)
         {
             var obj = {
                 "EventName": "ClipboardEvent",
                 "text": latestClipBoardContent.toString()
             }
-            connectedPCs[i].sockObj.write(JSON.stringify(obj));
-            //connectedPCs[i].sockObj.write(latestClipBoardContent.toString())
+            connectedPCsOthers[i].sockObj.write(JSON.stringify(obj));
+            //connectedPCsOthers[i].sockObj.write(latestClipBoardContent.toString())
         }
     }
 };
