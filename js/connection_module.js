@@ -15,6 +15,51 @@ var connectedPCsList
 var listOfActiveOSSHosts = []
 var serverMouse
 var serverOthers
+
+var specialKeys = {
+    "8": "backspace",
+    "46": "delete",
+    "110": "delete",
+    "13": "enter",
+    "9": "tab",
+    "27": "escape",
+    "38": "up",
+    "40": "down",
+    "39": "right",
+    "37": "left",
+    "36": "home",
+    "103": "home",
+    "35": "end",
+    "97": "end",
+    "33": "pageup",
+    "105": "pageup",
+    "34": "pagedown",
+    "99": "pagedown",
+    "112": "f1",
+    "113": "f2",
+    "114": "f3",
+    "115": "f4",
+    "116": "f5",
+    "117": "f6",
+    "118": "f7",
+    "119": "f8",
+    "120": "f9",
+    "121": "f10",
+    "122": "f11",
+    "123": "f12",
+    "91": "command",
+    "164": "alt",
+    "165": "alt",
+    "162": "control",
+    "163": "control",
+    "160": "shift",
+    "161": "right_shift",
+    "32": "space",
+    "44": "printscreen",
+    "45": "insert",
+    "96": "insert"
+    // skipped numpad, volume (up,down), brigtness
+}
 module.exports = {
   foo: function () {
     console.log('TEST OUT')
@@ -148,16 +193,20 @@ module.exports = {
                 else if (event == "KeyboardKeyPressEvent") {
                     var keycode = jsonObj.keycode;
                     var rawcode = jsonObj.rawcode;
-                    console.log(keycode + " pressed");
-                    //robot.keyTap(keycode);
+                    //console.log(String.fromCharCode(rawcode) + " pressed");
+                    var char = String.fromCharCode(rawcode)
+                    if(specialKeys[rawcode.toString()] != undefined) {
+                        robot.keyTap(specialKeys[rawcode.toString()]);
+                    }
+                    else {
+                        robot.keyTap(char);
+                    }
                 }
                 else if (event == "MouseClickEvent") {
                     var button = jsonObj.button;
                     var clicks = jsonObj.clicks;
-                    var x = jsonObj.x;
-                    var y = jsonObj.y;
-                    console.log(button + " clicked");
-                    //robot.mouseClick ???
+                    //console.log(button + " clicked");
+                    robot.mouseClick(button == 1 ? "left" : "right");
                 }
 
             });
@@ -233,6 +282,8 @@ module.exports = {
     sendKeyboardEventToAllConnected:function(event){
         console.log("Sending keyboard keydown event to ", connectedPCsOthers.length, " systems")
         console.log(event)
+        var rawcode = event.rawcode;
+        console.log(specialKeys[rawcode.toString()])
         for(var i=0; i<connectedPCsOthers.length; i++)
         {
             connectedPCsOthers[i].sockObj.write(JSON.stringify(event));
