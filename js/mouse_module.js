@@ -100,6 +100,11 @@ function startIOHookMouseHandlers()
         //else connectionModule.sendMouseMovementEventToAllConnected(event)
         else connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
     });
+
+    hook.on("mouseclick", event => {
+        connectionModule.sendMouseClickEventToAllConnected(event)
+    });
+
     console.log("Attaching IOHook Mouse")
     hook.start();
 }

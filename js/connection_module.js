@@ -137,11 +137,29 @@ module.exports = {
                 var jsonObj = JSON.parse(obj1);
 
                 var event= jsonObj.EventName;
-                // clipboard event
-                var text = jsonObj.text.toString();
-                console.log("Clipboard copy event recieved from other system")
-                clipboard.writeText(text.toString());
-                //clipboard.writeText(data.toString())
+                
+                if (event == "ClipboardEvent") {
+                    // clipboard event
+                    var text = jsonObj.text;
+                    console.log("Clipboard copy event recieved from other system")
+                    clipboard.writeText(text);
+                    //clipboard.writeText(data.toString())
+                }
+                else if (event == "KeyboardEvent") {
+                    var keycode = jsonObj.keycode;
+                    var rawcode = jsonObj.rawcode;
+                    console.log(keycode + " pressed");
+                    //robot.keyTap(keycode);
+                }
+                else if (event == "MouseClickEvent") {
+                    var button = jsonObj.button;
+                    var clicks = jsonObj.clicks;
+                    var x = jsonObj.x;
+                    var y = jsonObj.y;
+                    console.log(button + " clicked");
+                    //robot.mouseClick ???
+                }
+
             });
             sock.on('close', function(){
                 console.log("Connection closed!");
@@ -209,6 +227,36 @@ module.exports = {
                 }
                 app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
             }
+        }
+    },
+    sendMouseClickEventToAllConnected:function(event){
+        console.log("Sending mouse click event to ", connectedPCsMouse.length, " systems")
+        console.log(event)
+        for(var i=0; i<connectedPCsMouse.length; i++)
+        {
+            var obj = {
+                "EventName": "MouseClickEvent",
+                "button": event.button.toString(),
+                "clicks": event.clicks.toString(),
+                "x": event.x.toString(),
+                "y": event.y.toString()
+            }
+            connectedPCsMouse[i].sockObj.write(JSON.stringify(obj));
+            //connectedPCsMouse[i].sockObj.write(event.x.toString()+","+event.y.toString()+',')
+        }
+    },
+    sendKeyboardEventToAllConnected:function(event){
+        console.log("Sending keyboard keydown event to ", connectedPCsOthers.length, " systems")
+        console.log(event)
+        for(var i=0; i<connectedPCsOthers.length; i++)
+        {
+            var obj = {
+                "EventName": "KeyboardEvent",
+                "keycode": event.keycode,
+                "rawcode": event.rawcode
+            }
+            connectedPCsOthers[i].sockObj.write(JSON.stringify(obj));
+            //connectedPCsOthers[i].sockObj.write(latestClipBoardContent.toString())
         }
     }
 };

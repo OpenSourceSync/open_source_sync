@@ -7,11 +7,13 @@ function startIOHookKeyboardHandlers()
         delete hook
     }
     hook = new require('iohook')
-    console.log("Attaching IOHook Keyboard")
-    /*hook.on("keboardevent", event => {
+    
+    hook.on("keydown", event => {
         connectionModule.sendKeyboardEventToAllConnected(event)
-    });*/
+    });
+    
     // TODO detect keyboard events and ask the connection_module to pass them on the other systems
+    console.log("Attaching IOHook Keyboard")
     hook.start();
 }
 module.exports = {
