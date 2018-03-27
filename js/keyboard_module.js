@@ -9,6 +9,7 @@ function startIOHookKeyboardHandlers()
     hook = new require('iohook')
     
     hook.on("keydown", event => {
+        event["EventName"] = "KeyboardKeyPressEvent";
         connectionModule.sendKeyboardEventToAllConnected(event)
     });
     

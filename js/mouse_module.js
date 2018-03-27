@@ -70,6 +70,7 @@ function startIOHookMouseHandlers()
                 // transfer control to the system on the left of violator
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[violatorIndex-1].isActive=true;
+                
             }
             // ->if violated=right && violator is not last system on right and not next to central system towards left then
             //          start sending events to the system on the right of violator
@@ -98,11 +99,15 @@ function startIOHookMouseHandlers()
             console.log("Before changing control : ", "active: ",violatorIndex)
         }
         //else connectionModule.sendMouseMovementEventToAllConnected(event)
-        else connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
+        else {
+            event["EventName"] = "MouseMoveEvent";
+            connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
+        }
     });
 
     hook.on("mouseclick", event => {
-        connectionModule.sendMouseClickEventToAllConnected(event)
+        event["EventName"] = "MouseClickEvent";
+        connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
     });
 
     console.log("Attaching IOHook Mouse")
