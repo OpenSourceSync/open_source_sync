@@ -1,9 +1,9 @@
 var connectionModule
 var hook
+var robot = require("robotjs")
 function startIOHookMouseHandlers()
 {
-    if(hook)
-    {
+    if(hook) {
         delete hook
     }
     hook = new require('iohook')
@@ -70,7 +70,9 @@ function startIOHookMouseHandlers()
                 // transfer control to the system on the left of violator
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[violatorIndex-1].isActive=true;
-                
+                event["EventName"] = "MouseMoveEvent";
+                event.x = 0;
+                robot.moveMouse(3, event.y);
             }
             // ->if violated=right && violator is not last system on right and not next to central system towards left then
             //          start sending events to the system on the right of violator
@@ -79,6 +81,9 @@ function startIOHookMouseHandlers()
                 // transfer control to the system on the right of violator
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[violatorIndex+1].isActive=true;
+                event["EventName"] = "MouseMoveEvent";
+                event.x = 0;
+                robot.moveMouse(3, event.y);
             }
             // ->if violated=left && violator is not last system on left or right BUT IS next to the central system
             //          towards right then stop sending events

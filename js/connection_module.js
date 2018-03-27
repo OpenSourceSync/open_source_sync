@@ -204,6 +204,7 @@ module.exports = {
         for(var i=0; i<app.connectedList.length; i++)
         {
             console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
+            
             if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
             {
                 if (event.EventName == "MouseMoveEvent") {
