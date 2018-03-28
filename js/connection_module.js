@@ -158,8 +158,17 @@ module.exports = {
             });
             sock.on('data', function(data){
                 var obj1= data.toString().split('}')[0]+'}';
-                var jsonObj = JSON.parse(obj1);
+                var jsonObj;
 
+                try
+                {
+                    jsonObj = JSON.parse(obj1);    
+                }
+                catch(err)
+                {
+                    console.log('Invalid Mouse JSON Detected: ' + obj1);
+                    return
+                }
                 var event= jsonObj.EventName;
 
                 var x = jsonObj.x;
@@ -178,8 +187,20 @@ module.exports = {
                 console.log("Connected to client on its request");
             });
             sock.on('data', function(data){
+
                 var obj1= data.toString().split('}')[0]+'}';
-                var jsonObj = JSON.parse(obj1);
+                
+                var jsonObj;
+
+                try
+                {
+                    jsonObj = JSON.parse(obj1);    
+                }
+                catch(err)
+                {
+                    console.log('Invalid Others JSON Detected: ' + obj1);
+                    return
+                }
 
                 var event= jsonObj.EventName;
                 
@@ -217,7 +238,7 @@ module.exports = {
         console.log('Others connection serverOthers STARTED');
     },
     sendMouseMovementEventToAllConnected:function(event){
-        console.log("Sending mouse movement event to ", connectedPCsMouse.length, " systems")
+        //console.log("Sending mouse movement event to ", connectedPCsMouse.length, " systems")
         for(var i=0; i<app.connectedList.length; i++)
         {
             var obj = {
@@ -252,7 +273,7 @@ module.exports = {
     sendMouseMovementEventToCurrentlyActiveSystem:function(event){
         for(var i=0; i<app.connectedList.length; i++)
         {
-            console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
+            //console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
             
             if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
             {
@@ -265,17 +286,14 @@ module.exports = {
             }
         }
     },
-    sendClipBoardSyncEventToCurrentlyActiveSystem:function(latestClipBoardContent){
+    sendClipBoardSyncEventToCurrentlyActiveSystem:function(event){
+        console.log(event)
         for(var i=0; i<app.connectedList.length; i++)
         {
             console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
             if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
             {
-                var obj = {
-                "EventName": "ClipboardEvent",
-                "text": latestClipBoardContent.toString()
-                }
-                app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
+                app.connectedList[i].otherSockObj.write(JSON.stringify(event));
             }
         }
     },

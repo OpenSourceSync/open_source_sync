@@ -13,6 +13,7 @@ function handleClipboardChange(latestClipboardContent)
     // TODO ask the connection module to send a message to all other connected devices to set their local
     // clipboard to [latestClipboardContent]
     //connectionModule.sendClipBoardSyncEventToAllConnected(latestClipboardContent);
+    event["EventName"] = "ClipboardEvent";
     connectionModule.sendClipBoardSyncEventToCurrentlyActiveSystem(event)
 }
 function listenClipboard()
@@ -24,7 +25,7 @@ function listenClipboard()
     var new_clip = clipboard.readText()
     if (new_clip != clipboard_content)
     {
-        console.log("Old clipboard: ", clipboard_content, " and new Clipboard: ", new_clip)
+        //console.log("Old clipboard: ", clipboard_content, " and new Clipboard: ", new_clip)
         clipboard_content = new_clip
         handleClipboardChange(clipboard_content.toString());
     }
