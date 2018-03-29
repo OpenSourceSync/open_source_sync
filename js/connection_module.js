@@ -105,7 +105,9 @@ var specialKeys = {
     "32": "space",
     "44": "printscreen",
     "45": "insert",
-    "96": "insert"
+    "96": "insert",
+    "777": ['c', ['control']],
+    "778": ['v', ['control']]
     // skipped numpad, volume (up,down), brigtness
 }
 
@@ -147,6 +149,15 @@ function handleEvent(data)
         
         if (keysList[rawcode.toString()] != undefined) {
             robot.keyTap(keysList[rawcode.toString()]);
+            // console.log(rawcode.toString())
+            // if(typeof keysList[rawcode.toString()] === 'object')
+            // {
+            //     robot.keyTap(keysList[rawcode.toString()][0], keysList[rawcode.toString()][1]);
+            // }
+            // else
+            // {
+            //     robot.keyTap(keysList[rawcode.toString()]);
+            // }
         }
         else {
             try {
@@ -301,8 +312,8 @@ module.exports = {
                 else
                 {
                     var chunks = data.split(delimeter);
-                    console.log("CHUNKS START")
-                    console.log(chunks.length)
+                    //console.log("CHUNKS START")
+                    //console.log(chunks.length)
                     completeData+=chunks[0]
                     // send complete data to handler Function
                     handleEvent(completeData)

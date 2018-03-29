@@ -1,6 +1,9 @@
 var connectionModule
 var hook
 var robot = require("robotjs")
+const { spawn } = require('child_process');
+var transparentScreen
+
 function startIOHookMouseHandlers()
 {
     if(hook) {
@@ -51,12 +54,29 @@ function startIOHookMouseHandlers()
   
           win.focus()
         }
+        else {
+            console.log("Starting transparent screen")
+            if(transparentScreen==null)
+            {
+                transparentScreen = spawn('/media/ferhan/Education_material_and_setups/Qt/Projects/Test/build-transparentScreenTest-Desktop_Qt_5_10_1_GCC_64bit-Release/transparentScreenTest', []);
+                console.log("Starting transparent screen")
+            }
+        }
       }
   
       function closeFilter() {
         if (os.platform() == 'win32')
         {
           win.close();
+        }
+        else {
+            console.log("Killing transparent screen")
+            if(transparentScreen!=null)
+            {
+                transparentScreen.kill();
+                transparentScreen=null
+                console.log("Killing transparent screen")
+            }
         }
       }
 
