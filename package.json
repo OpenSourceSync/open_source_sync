@@ -10,7 +10,8 @@
   "scripts": {
     "start": "electron .",
     "pack": "build --dir",
-    "dist": "build"
+    "dist": "build",
+    "rebuild-robotjs": "electron-rebuild -f -w robotjs"
   },
   "build": {
     "appId": "com.electron.opensourcesync",

@@ -139,25 +139,25 @@ function handleEvent(data)
         var rawcode = jsonObj.rawcode;
         //console.log(String.fromCharCode(rawcode) + " pressed");
         var char = String.fromCharCode(rawcode)
-        
+
         if(jsonObj.platform == "linux") {
             keysList = specialKeysLinux
         }
         else {
             keysList = specialKeys
         }
-        
+
         if (keysList[rawcode.toString()] != undefined) {
-            robot.keyTap(keysList[rawcode.toString()]);
-            // console.log(rawcode.toString())
-            // if(typeof keysList[rawcode.toString()] === 'object')
-            // {
-            //     robot.keyTap(keysList[rawcode.toString()][0], keysList[rawcode.toString()][1]);
-            // }
-            // else
-            // {
-            //     robot.keyTap(keysList[rawcode.toString()]);
-            // }
+            //robot.keyTap(keysList[rawcode.toString()]);
+            console.log(rawcode.toString())
+            if(typeof keysList[rawcode.toString()] === 'object')
+            {
+                robot.keyTap(keysList[rawcode.toString()][0], keysList[rawcode.toString()][1]);
+            }
+            else
+            {
+                robot.keyTap(keysList[rawcode.toString()]);
+            }
         }
         else {
             try {
@@ -182,7 +182,7 @@ module.exports = {
     console.log('TEST OUT')
   },
   findActiveOSSDevicesOnLocalNetwork:function () {
-  
+
     bonjour.unpublishAll(function(){
         console.log("Unpublishing all services");
     });
@@ -208,7 +208,7 @@ module.exports = {
             if(flag)
             {
                 console.log("Trying to connect")
-            }          
+            }
         }
         else {
             console.log("You are running an OSSActiveHost service yourself");
@@ -279,7 +279,7 @@ module.exports = {
 
                 try
                 {
-                    jsonObj = JSON.parse(obj1);    
+                    jsonObj = JSON.parse(obj1);
                 }
                 catch(err)
                 {
@@ -324,7 +324,7 @@ module.exports = {
                         // send complete data to handler Function
                         handleEvent(completeData)
                     }
-                    completeData=chunks[i]              
+                    completeData=chunks[i]
                 }
                 //console.log("In data function: completeDate : ", completeData)
                 //completeData+=data.toString()
@@ -370,7 +370,7 @@ module.exports = {
         for(var i=0; i<app.connectedList.length; i++)
         {
             //console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
-            
+
             if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
             {
                 if (event.EventName == "MouseMoveEvent") {
