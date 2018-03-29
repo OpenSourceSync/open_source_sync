@@ -7,15 +7,59 @@ function startIOHookMouseHandlers()
         delete hook
     }
     hook = new require('iohook')
+    const {screen} = require('electron').remote;
+    const {BrowserWindow} = require('electron').remote;
+    
+    const os = require('os')
+    const url = require('url')
+    const path = require('path')
 
-    var electron = require('electron')
-    var screenElectron = electron.screen;
-    var allScreens = screenElectron.getAllDisplays();
+    let win;
+
+    var allScreens = screen.getAllDisplays();
     var width = allScreens[0].size.width;
     var height = allScreens[0].size.height;
     var min_width = 0;
     var max_width = width;
+
     console.log("ScreenRes: " + width + "x" + height);
+
+    function openFilter() {
+        if (os.platform() == 'win32') {
+          win = new BrowserWindow({
+            width: 800,
+            height: 600,
+            transparent: true,
+            frame: false,
+            alwaysOnTop: true,
+            skipTaskbar: true,
+            enableLargerThanScreen: true,
+            thickFrame: false
+          })
+  
+          win.loadURL(url.format({
+            pathname: path.join(__dirname, '..', 'hide.html'),
+            protocol: 'file:',
+            slashes: true
+          }))
+  
+          var allScreens = screen.getAllDisplays();
+  
+          win.setSize(allScreens[0].bounds.width + 100, allScreens[0].bounds.height + 100)
+          win.setResizable(false)
+          win.setPosition(-50, -50)
+  
+          win.focus()
+        }
+      }
+  
+      function closeFilter() {
+        if (os.platform() == 'win32')
+        {
+          win.close();
+        }
+      }
+
     hook.on("mousemove", event => {
         // iohook method giving mouse coordinates at all times
         if(event.x  >= max_width-1 || event.x  <= min_width+1) 
@@ -68,6 +112,7 @@ function startIOHookMouseHandlers()
             if(violated=="left" && (violatorIndex!=0 && violatorIndex!=centralIndex+1))
             {
                 // transfer control to the system on the left of violator
+                openFilter()
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[violatorIndex-1].isActive=true;
                 event["EventName"] = "MouseMoveEvent";
@@ -79,6 +124,7 @@ function startIOHookMouseHandlers()
             if(violated=="right" && (violatorIndex!=app.connectedList.length-1 && violatorIndex!=centralIndex-1))
             {
                 // transfer control to the system on the right of violator
+                openFilter()
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[violatorIndex+1].isActive=true;
                 event["EventName"] = "MouseMoveEvent";
@@ -90,6 +136,7 @@ function startIOHookMouseHandlers()
             if(violated=="left" && violatorIndex==centralIndex+1)
             {
                 // stop sending events or set central system as active
+                closeFilter()
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[centralIndex].isActive=true;
             }
@@ -98,6 +145,7 @@ function startIOHookMouseHandlers()
             if(violated=="right" && violatorIndex==centralIndex-1)
             {
                 // stop sending events or set central system as active
+                closeFilter()
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[centralIndex].isActive=true;
             }
