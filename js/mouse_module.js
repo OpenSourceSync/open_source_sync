@@ -55,11 +55,11 @@ function startIOHookMouseHandlers()
           win.focus()
         }
         else {
-            console.log("Starting transparent screen")
+            //console.log("Starting transparent screen")
             if(transparentScreen==null)
             {
                 transparentScreen = spawn('/media/ferhan/Education_material_and_setups/Qt/Projects/Test/build-transparentScreenTest-Desktop_Qt_5_10_1_GCC_64bit-Release/transparentScreenTest', []);
-                console.log("Starting transparent screen")
+                //console.log("Starting transparent screen")
             }
         }
       }
@@ -70,12 +70,12 @@ function startIOHookMouseHandlers()
           win.close();
         }
         else {
-            console.log("Killing transparent screen")
+            //console.log("Killing transparent screen")
             if(transparentScreen!=null)
             {
                 transparentScreen.kill();
                 transparentScreen=null
-                console.log("Killing transparent screen")
+                //console.log("Killing transparent screen")
             }
         }
       }
@@ -112,8 +112,8 @@ function startIOHookMouseHandlers()
             {
                 violated="left"
             }
-            console.log('Cursor is out of the screen bounds and at coord: ' + event.x);
-            console.log("Before changing control : ", "active: ",violatorIndex)
+            //console.log('Cursor is out of the screen bounds and at coord: ' + event.x);
+            //console.log("Before changing control : ", "active: ",violatorIndex)
             // violator= [the system currently having control], violated=[Boundry that was violated]
 
             // Central system will handle this scenario in the following way
@@ -169,7 +169,7 @@ function startIOHookMouseHandlers()
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[centralIndex].isActive=true;
             }
-            console.log("Before changing control : ", "active: ",violatorIndex)
+            //console.log("Before changing control : ", "active: ",violatorIndex)
         }
         //else connectionModule.sendMouseMovementEventToAllConnected(event)
         else {

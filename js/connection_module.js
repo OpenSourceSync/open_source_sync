@@ -353,7 +353,7 @@ module.exports = {
         }
     },
     sendClipBoardSyncEventToAllConnected:function(latestClipBoardContent){
-        console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
+        //console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
         for(var i=0; i<app.connectedList.length; i++)
         {
             var obj = {
