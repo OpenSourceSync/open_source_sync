@@ -4,6 +4,7 @@ const os = require('os')
 const net = require('net')
 var PORTMOUSE= 12345;
 var PORTOTHER= 12346;
+var delimeter = "~~~";
 var bonjour = require('bonjour')()
 const {clipboard} = require('electron');
 var robot = require("robotjs")
@@ -15,6 +16,53 @@ var connectedPCsList
 var listOfActiveOSSHosts = []
 var serverMouse
 var serverOthers
+
+var keysList = []
+
+var specialKeysLinux = {
+    "65288": "backspace",
+    "65535": "delete",
+    "65535": "delete",
+    "65293": "enter",
+    "65289": "tab",
+    "65307": "escape",
+    "65362": "up",
+    "65364": "down",
+    "65363": "right",
+    "65361": "left",
+    "65360": "home",
+    "65360": "home",
+    "65367": "end",
+    "65367": "end",
+    "65365": "pageup",
+    "65365": "pageup",
+    "65366": "pagedown",
+    "65366": "pagedown",
+    "65470": "f1",
+    "65471": "f2",
+    "65472": "f3",
+    "65473": "f4",
+    "65474": "f5",
+    "65475": "f6",
+    "65476": "f7",
+    "65477": "f8",
+    "65478": "f9",
+    "65479": "f10",
+    "65480": "f11",
+    "65481": "f12",
+    "-1": "command",
+    "65513": "alt",
+    "65514": "alt",
+    "65507": "control",
+    "65508": "control",
+    "65505": "shift",
+    "65506": "right_shift",
+    "32": "space",
+    "65377": "printscreen",
+    "65379": "insert",
+    "65379": "insert"
+    // skipped numpad, volume (up,down), brigtness
+}
 
 var specialKeys = {
     "8": "backspace",
@@ -47,7 +95,7 @@ var specialKeys = {
     "121": "f10",
     "122": "f11",
     "123": "f12",
-    "91": "command",
+    "-1": "command",
     "164": "alt",
     "165": "alt",
     "162": "control",
@@ -59,6 +107,64 @@ var specialKeys = {
     "45": "insert",
     "96": "insert"
     // skipped numpad, volume (up,down), brigtness
+}
+
+function handleEvent(data)
+{
+    // var obj1 = data.toString().split('}')[0] + '}';
+    var jsonObj
+
+    try {
+        //jsonObj = JSON.parse(obj1);
+        jsonObj = JSON.parse(data);
+    }
+    catch (err) {
+        //console.log('Invalid Others JSON Detected: ' + data);
+        return
+    }
+
+    var event = jsonObj.EventName;
+
+    if (event == "ClipboardEvent") {
+        // clipboard event
+        var text = jsonObj.text;
+        console.log("Clipboard copy event recieved from other system")
+        clipboard.writeText(text);
+        //clipboard.writeText(data.toString())
+    }
+    else if (event == "KeyboardKeyPressEvent") {
+        var keycode = jsonObj.keycode;
+        var rawcode = jsonObj.rawcode;
+        //console.log(String.fromCharCode(rawcode) + " pressed");
+        var char = String.fromCharCode(rawcode)
+        
+        if(jsonObj.platform == "linux") {
+            keysList = specialKeysLinux
+        }
+        else {
+            keysList = specialKeys
+        }
+        
+        if (keysList[rawcode.toString()] != undefined) {
+            robot.keyTap(keysList[rawcode.toString()]);
+        }
+        else {
+            try {
+                robot.keyTap(char);
+            }
+            catch (err) {
+                //console.log('Special Key Detected: ' + char);
+                return
+            }
+
+        }
+    }
+    else if (event == "MouseClickEvent") {
+        var button = jsonObj.button;
+        var clicks = jsonObj.clicks;
+        //console.log(button + " clicked");
+        robot.mouseClick(button == 1 ? "left" : "right");
+    }
 }
 module.exports = {
   foo: function () {
@@ -166,7 +272,7 @@ module.exports = {
                 }
                 catch(err)
                 {
-                    console.log('Invalid Mouse JSON Detected: ' + obj1);
+                    //console.log('Invalid Mouse JSON Detected: ' + obj1);
                     return
                 }
                 var event= jsonObj.EventName;
@@ -181,64 +287,36 @@ module.exports = {
         }).listen(PORTMOUSE , IP);
         console.log('Mouse connection serverMouse STARTED');
         //---------------------------------------
-
         serverOthers = net.createServer(function(sock){
+            var completeData = ""
             sock.on('connection', function(){
                 console.log("Connected to client on its request");
             });
             sock.on('data', function(data){
-
-                var obj1= data.toString().split('}')[0]+'}';
-                
-                var jsonObj;
-
-                try
+                data = data.toString()
+                if(data.indexOf(delimeter)==-1)
                 {
-                    jsonObj = JSON.parse(obj1);    
+                    completeData+=data
                 }
-                catch(err)
+                else
                 {
-                    console.log('Invalid Others JSON Detected: ' + obj1);
-                    return
-                }
-
-                var event= jsonObj.EventName;
-                
-                if (event == "ClipboardEvent") {
-                    // clipboard event
-                    var text = jsonObj.text;
-                    console.log("Clipboard copy event recieved from other system")
-                    clipboard.writeText(text);
-                    //clipboard.writeText(data.toString())
-                }
-                else if (event == "KeyboardKeyPressEvent") {
-                    var keycode = jsonObj.keycode;
-                    var rawcode = jsonObj.rawcode;
-                    //console.log(String.fromCharCode(rawcode) + " pressed");
-                    var char = String.fromCharCode(rawcode)
-                    if(specialKeys[rawcode.toString()] != undefined) {
-                        robot.keyTap(specialKeys[rawcode.toString()]);
+                    var chunks = data.split(delimeter);
+                    console.log("CHUNKS START")
+                    console.log(chunks.length)
+                    completeData+=chunks[0]
+                    // send complete data to handler Function
+                    handleEvent(completeData)
+                    var i=1
+                    for(; i<chunks.length-1; i++)
+                    {
+                        completeData=chunks[i]
+                        // send complete data to handler Function
+                        handleEvent(completeData)
                     }
-                    else {
-                        try
-                        {
-                            robot.keyTap(char);    
-                        }
-                        catch(err)
-                        {
-                            console.log('Special Key Detected: ' + char);
-                            return
-                        }
-                        
-                    }
+                    completeData=chunks[i]              
                 }
-                else if (event == "MouseClickEvent") {
-                    var button = jsonObj.button;
-                    var clicks = jsonObj.clicks;
-                    //console.log(button + " clicked");
-                    robot.mouseClick(button == 1 ? "left" : "right");
-                }
-
+                //console.log("In data function: completeDate : ", completeData)
+                //completeData+=data.toString()
             });
             sock.on('close', function(){
                 console.log("Connection closed!");
@@ -264,7 +342,7 @@ module.exports = {
         }
     },
     sendClipBoardSyncEventToAllConnected:function(latestClipBoardContent){
-        console.log("Sending clipboard synchronize event to ", app.connectedList.length, " systems")
+        console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
         for(var i=0; i<app.connectedList.length; i++)
         {
             var obj = {
@@ -273,7 +351,7 @@ module.exports = {
             }
             if(app.connectedList[i].isCentral==false)
             {
-                app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
+                app.connectedList[i].otherSockObj.write(JSON.stringify(obj) + delimeter);
             }
         }
     },
@@ -288,7 +366,7 @@ module.exports = {
                     app.connectedList[i].mouseSockObj.write(JSON.stringify(event));
                 }
                 else {
-                    app.connectedList[i].otherSockObj.write(JSON.stringify(event));
+                    app.connectedList[i].otherSockObj.write(JSON.stringify(event) + delimeter);
                 }
             }
         }
@@ -308,12 +386,13 @@ module.exports = {
     //     }
     // },
     sendKeyboardEventToCurrentlyActiveSystem:function(event){
+        event["platform"] = os.platform()
         for(var i=0; i<app.connectedList.length; i++)
         {
             // console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
             if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
             {
-                app.connectedList[i].otherSockObj.write(JSON.stringify(event));
+                app.connectedList[i].otherSockObj.write(JSON.stringify(event) + delimeter);
             }
         }
     }
