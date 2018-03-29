@@ -13,8 +13,7 @@ function handleClipboardChange(latestClipboardContent)
     // TODO ask the connection module to send a message to all other connected devices to set their local
     // clipboard to [latestClipboardContent]
     //connectionModule.sendClipBoardSyncEventToAllConnected(latestClipboardContent);
-    event["EventName"] = "ClipboardEvent";
-    connectionModule.sendClipBoardSyncEventToCurrentlyActiveSystem(event)
+    connectionModule.sendClipBoardSyncEventToAllConnected(latestClipboardContent)
 }
 function listenClipboard()
 {
@@ -44,4 +43,4 @@ module.exports = {
             clearTimeout(timeoutGenerator)
         }
     }
-}
+}//

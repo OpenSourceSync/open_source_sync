@@ -10,7 +10,7 @@ function startIOHookKeyboardHandlers()
     
     hook.on("keydown", event => {
         event["EventName"] = "KeyboardKeyPressEvent";
-        connectionModule.sendKeyboardEventToAllConnected(event)
+        connectionModule.sendKeyboardEventToCurrentlyActiveSystem(event)
     });
     
     // TODO detect keyboard events and ask the connection_module to pass them on the other systems

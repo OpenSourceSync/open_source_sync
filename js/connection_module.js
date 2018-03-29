@@ -107,12 +107,12 @@ module.exports = {
         console.log("connectiong to : ", ipAddress)
         client1.connect(PORTMOUSE , ipAddress, function() {
             console.log("Connected to mouse port: ", ipAddress)
-            connectedPCsMouse.push({sockObj: client1, name: hostname,ip:ipAddress});
-            //app.connectedList.push({name: hostname,ip:ipAddress, isActive:false})
+            // connectedPCsMouse.push({sockObj: client1, name: hostname,ip:ipAddress});
+            // app.connectedList.push({name: hostname,ip:ipAddress, isActive:false})
         });
         client2.connect(PORTOTHER , ipAddress, function() {
             console.log("Connected to others port: ", ipAddress)
-            connectedPCsOthers.push({sockObj: client2, name: hostname,ip:ipAddress});
+            // connectedPCsOthers.push({sockObj: client2, name: hostname,ip:ipAddress});
             app.connectedList.push({name: hostname,ip:ipAddress, isActive:false, isCentral:false, mouseSockObj:client1, otherSockObj:client2})
             //app.connectedList.push({name: hostname,ip: ipAddress});
             //client.write('Hello serverMouse!');
@@ -220,7 +220,16 @@ module.exports = {
                         robot.keyTap(specialKeys[rawcode.toString()]);
                     }
                     else {
-                        robot.keyTap(char);
+                        try
+                        {
+                            robot.keyTap(char);    
+                        }
+                        catch(err)
+                        {
+                            console.log('Special Key Detected: ' + char);
+                            return
+                        }
+                        
                     }
                 }
                 else if (event == "MouseClickEvent") {
@@ -255,15 +264,13 @@ module.exports = {
         }
     },
     sendClipBoardSyncEventToAllConnected:function(latestClipBoardContent){
-        console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
+        console.log("Sending clipboard synchronize event to ", app.connectedList.length, " systems")
         for(var i=0; i<app.connectedList.length; i++)
         {
             var obj = {
                 "EventName": "ClipboardEvent",
-                "text": latestClipBoardContent.toString()
+                "text": latestClipBoardContent
             }
-            //connectedPCsOthers[i].sockObj.write(JSON.stringify(obj));
-            //console.log(app.connectedList)
             if(app.connectedList[i].isCentral==false)
             {
                 app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
@@ -286,26 +293,28 @@ module.exports = {
             }
         }
     },
-    sendClipBoardSyncEventToCurrentlyActiveSystem:function(event){
-        console.log(event)
+    // sendClipBoardSyncEventToCurrentlyActiveSystem:function(latestClipBoardContent){
+    //     for(var i=0; i<app.connectedList.length; i++)
+    //     {
+    //         // console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
+    //         if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
+    //         {
+    //             var obj = {
+    //                 "EventName": "ClipboardEvent",
+    //                 "text": latestClipBoardContent
+    //             }
+    //             app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
+    //         }
+    //     }
+    // },
+    sendKeyboardEventToCurrentlyActiveSystem:function(event){
         for(var i=0; i<app.connectedList.length; i++)
         {
-            console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
+            // console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
             if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
             {
                 app.connectedList[i].otherSockObj.write(JSON.stringify(event));
             }
-        }
-    },
-    sendKeyboardEventToAllConnected:function(event){
-        console.log("Sending keyboard keydown event to ", connectedPCsOthers.length, " systems")
-        console.log(event)
-        var rawcode = event.rawcode;
-        console.log(specialKeys[rawcode.toString()])
-        for(var i=0; i<connectedPCsOthers.length; i++)
-        {
-            connectedPCsOthers[i].sockObj.write(JSON.stringify(event));
-            //connectedPCsOthers[i].sockObj.write(latestClipBoardContent.toString())
         }
     }
 };
