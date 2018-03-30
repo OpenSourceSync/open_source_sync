@@ -157,6 +157,7 @@ function startIOHookMouseHandlers()
             {
                 // stop sending events or set central system as active
                 closeFilter()
+                robot.moveMouse(width - 3, event.y); 
                 app.connectedList[violatorIndex].isActive=false;
                 app.connectedList[centralIndex].isActive=true;
             }
