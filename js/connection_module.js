@@ -211,6 +211,7 @@ module.exports = {
             }
         }
         else {
+            app.connectionState = 'Active';
             console.log("You are running an OSSActiveHost service yourself");
         }
         //console.log(app.selectList);

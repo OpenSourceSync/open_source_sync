@@ -1,1 +1,1 @@
-electron .
+yarn start
