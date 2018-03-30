@@ -8,23 +8,28 @@ var bonjour = require('bonjour')()
 
 var connectedPCs = []
 var listOfActiveOSSHosts = []*/
-
 var connection_module= new require('./js/connection_module.js')
 var mouse_module = require('./js/mouse_module.js')
 var clipboard_module = require('./js/clipboard_module.js')
 var Keyboard_module = require('./js/keyboard_module.js')
-
 mouse_module.setInitVariables(connection_module)
 clipboard_module.setInitVariables(connection_module)
 Keyboard_module.setInitVariables(connection_module)
 
+////////// Initializing the connectedPC List
+var os = require('os');
+var address, ifaces = os.networkInterfaces();
+        for (var dev in ifaces) {
+            ifaces[dev].filter((details) => details.family === 'IPv4' && details.internal === false ? address = details.address: undefined);
+        }
+        var IP = address;
+        console.log('HOST NAME : ' + os.hostname());
+var list =[{name: os.hostname(),ip:IP, isActive:true, isCentral:true, mouseSockObj:null, otherSockObj:null}]
+//////////////////////////////////////////////
 var draggable = require('vuedraggable');
 
 Vue.component('draggable', draggable);
 
-function initialize() {
-    connection_module.foo;
-}
 
 var app = new Vue({
     el: '#app',
@@ -47,7 +52,7 @@ var app = new Vue({
                 binding: 'Ctrl + V'
             }
         ],
-        connectedList: []
+        connectedList: list
     },
     methods: {
         homeClick: function () {

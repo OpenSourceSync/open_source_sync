@@ -2,6 +2,8 @@ const electron = require('electron')
 var keypress = require('keypress');
 var conn = require('./js/connection_module.js')
 var $ = jQuery = require('./jquery.min.js')
+const {globalShortcut} = require('electron')
+//var robot = require("robotjs");
 conn.initialize()
 
 // Module to control application life.
@@ -71,6 +73,9 @@ function createWindow() {
 app.on('ready', () => {
   if (process.env.NODE_ENV !== 'production') {
     require('vue-devtools').install()
+    // const ret = globalShortcut.register('Super+X', () => {
+    //   console.log('CommandOrControl+X is pressed')
+    // })
     //onAddAPCButton()
   }
 })
