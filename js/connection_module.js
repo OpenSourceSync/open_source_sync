@@ -60,7 +60,9 @@ var specialKeysLinux = {
     "32": "space",
     "65377": "printscreen",
     "65379": "insert",
-    "65379": "insert"
+    "65379": "insert",
+    "777": ['c', ['control']],
+    "778": ['v', ['control']]
     // skipped numpad, volume (up,down), brigtness
 }
 
