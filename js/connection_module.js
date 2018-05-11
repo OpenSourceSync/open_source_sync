@@ -255,6 +255,13 @@ module.exports = {
         client2.on('close', function() {
             console.log('Client2 Connection closed');
         });
+
+        client1.on('error', function(err) {
+            console.log("Error at Client1: ", err);
+        });
+        client2.on('error', function(err) {
+            console.log("Error at Client2: ", err);
+        });
     },
 
     initialize: function ()
@@ -298,6 +305,9 @@ module.exports = {
             sock.on('close', function(){
                 console.log("Connection closed!");
             });
+            sock.on('error', function(err) {
+                console.log("Error at SockMouse: , ", err);
+            });
         }).listen(PORTMOUSE , IP);
         console.log('Mouse connection serverMouse STARTED');
         //---------------------------------------
@@ -334,6 +344,9 @@ module.exports = {
             });
             sock.on('close', function(){
                 console.log("Connection closed!");
+            });
+            sock.on('error', function(err) {
+                console.log("Error at SockOthers: ", err);
             });
         }).listen(PORTOTHER , IP);
         console.log('Others connection serverOthers STARTED');
