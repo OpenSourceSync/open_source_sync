@@ -10,7 +10,6 @@ const {clipboard} = require('electron');
 var robot = require("robotjs")
 var connectedPCsMouse = []
 var connectedPCsOthers = []
-
 var connectedPCsList
 
 var listOfActiveOSSHosts = []
@@ -244,10 +243,29 @@ module.exports = {
         client1.on('data', function(data) {
             console.log('Client1 data');
         });
+        var completeData = ""
         client2.on('data', function(data) {
             console.log('Client2 data');
+            data = data.toString()
+            if(data.indexOf(delimeter)==-1)
+            {
+                completeData+=data
+            }
+            else
+            {
+                var chunks = data.split(delimeter);
+                completeData+=chunks[0]
+                handleEvent(completeData)
+                var i=1
+                for(; i<chunks.length-1; i++)
+                {
+                    completeData=chunks[i]
+                    // send complete data to handler Function
+                    handleEvent(completeData)
+                }
+                completeData=chunks[i]
+            }
         });
-
         // Add a 'close' event handler for the client socket
         client1.on('close', function() {
             console.log('Client1 Connection closed');
@@ -280,7 +298,10 @@ module.exports = {
         console.log('BONJOUR STARTED');
         //----------------------------------------Zubair
         serverMouse = net.createServer(function(sock){
-            sock.on('connection', function(){
+            console.log(sock.remoteAddress,' client connected to mouse server')
+            global.clientMouse = sock
+            console.log("Clientmouse changed to : ", (clientMouse!=null))
+            sock.on('connect', function(){
                 console.log("Connected to client on its request");
             });
             sock.on('data', function(data){
@@ -313,7 +334,10 @@ module.exports = {
         //---------------------------------------
         serverOthers = net.createServer(function(sock){
             var completeData = ""
-            sock.on('connection', function(){
+            console.log(sock.remoteAddress,' client connected to others server')
+            global.clientOthers = sock
+            console.log("Clientothers changed to : ", (clientOthers!=null))
+            sock.on('connect', function(){
                 console.log("Connected to client on its request");
             });
             sock.on('data', function(data){
@@ -370,15 +394,28 @@ module.exports = {
     },
     sendClipBoardSyncEventToAllConnected:function(latestClipBoardContent){
         //console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
-        for(var i=0; i<app.connectedList.length; i++)
+        var clientOthers = require('electron').remote.getGlobal('clientOthers');
+        if(clientOthers!=null)
         {
+            console.log("Client others not null. Should send clipboard event back to client")
             var obj = {
                 "EventName": "ClipboardEvent",
                 "text": latestClipBoardContent
             }
-            if(app.connectedList[i].isCentral==false)
+            clientOthers.write(JSON.stringify(obj) + delimeter);
+        }
+        else
+        {
+            for(var i=0; i<app.connectedList.length; i++)
             {
-                app.connectedList[i].otherSockObj.write(JSON.stringify(obj) + delimeter);
+                var obj = {
+                    "EventName": "ClipboardEvent",
+                    "text": latestClipBoardContent
+                }
+                if(app.connectedList[i].isCentral==false)
+                {
+                    app.connectedList[i].otherSockObj.write(JSON.stringify(obj) + delimeter);
+                }
             }
         }
     },
