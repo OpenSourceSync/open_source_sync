@@ -96,7 +96,6 @@ var app = new Vue({
             console.log("running");
             connection_module.findActiveOSSDevicesOnLocalNetwork();
             mouse_module.startHandlingMouseEvents()
-            clipboard_module.startHandlingClipboardEvents()
             Keyboard_module.startHandlingKeyboardEvents()
         },
         addSelected: function (item) {
@@ -108,3 +107,4 @@ var app = new Vue({
         }
     }
 });
+clipboard_module.startHandlingClipboardEvents() // handle clipboard event in either case(connected/unconnected)

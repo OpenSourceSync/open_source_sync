@@ -1,11 +1,9 @@
 const electron = require('electron')
 var keypress = require('keypress');
-var conn = require('./js/connection_module.js')
+var conn = new require('./js/connection_module.js')
 var $ = jQuery = require('./jquery.min.js')
 const {globalShortcut} = require('electron')
 //var robot = require("robotjs");
-conn.initialize()
-
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
@@ -55,9 +53,12 @@ function createWindow() {
     mainWindow.maximize()
     mainWindow.show()
     setTimeout(function () { splashWindow.close() }, 1000);
+    conn.initialize()
   })
 
   // Emitted when the window is closed.
+  mainWindow.webContents.on('did-finish-load', function() {
+});
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
