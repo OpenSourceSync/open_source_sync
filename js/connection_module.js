@@ -458,6 +458,9 @@ module.exports = {
     })
 
     },
+    resetConnections: function() {
+        swal('test function', 'resetConnections fn inside connection module')
+    },
     connectToAnOSSClient: function (ipAddress, hostname) {
         var client1 = new net.Socket();
         var client2 = new net.Socket();

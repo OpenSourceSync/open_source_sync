@@ -158,7 +158,13 @@ var app = new Vue({
       setPasswordDialog();
     },
     updateKeys: function() {
-      store.set('customKeys', this.bindingList)
+      var previous = store.get('customKeys');
+      store.set('customKeys', this.bindingList);
+
+      keyboard_module.setCustomKey(previous);
+    },
+    destroyConnections: function() {
+      connection_module.resetConnections();
     }
   }
 });
@@ -207,11 +213,13 @@ if (customKeys === undefined) {
   var def = [
     {
       action: 'Copy',
-      binding: 'Ctrl + C'
+      binding: 'Ctrl + C',
+      code: '777'
     },
     {
       action: 'Paste',
-      binding: 'Ctrl + V'
+      binding: 'Ctrl + V',
+      code: '778'
     }
   ];
 
