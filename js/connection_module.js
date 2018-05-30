@@ -187,12 +187,32 @@ function handleEvent(data)
 
         }
     }
-    else if (event == "MouseClickEvent") {
+    // ------------------- Hassan --------------
+
+
+    // else if (event == "MouseClickEvent") {
+    //     var button = jsonObj.button;
+    //     var clicks = jsonObj.clicks;
+    //     //console.log(button + " clicked");
+    //     robot.mouseClick(button == 1 ? "left" : "right");
+    // }
+    else if (event == "MouseDownEvent") {
         var button = jsonObj.button;
         var clicks = jsonObj.clicks;
-        //console.log(button + " clicked");
-        robot.mouseClick(button == 1 ? "left" : "right");
+        robot.mouseToggle("down", button == 1 ? "left" : "right");
+        console.log("Mouse toggled down")
     }
+    else if (event == "MouseUpEvent") {
+        var button = jsonObj.button;
+        var clicks = jsonObj.clicks;
+        robot.mouseToggle("up",button == 1 ? "left" : "right");
+        console.log("Mouse toggled up")
+    } 
+    else if (event == "MouseDragEvent") { // this if isnt used 
+        robot.mouseToggle("up");
+        console.log("Mouse toggled up")
+    }
+// ----------------- Hassan ------------
     else if (event == "FileAvailableEvent") {
         console.log('Recieved file available event')
         var fileID = jsonObj.fileID;
@@ -574,8 +594,11 @@ module.exports = {
                 var y = jsonObj.y;
                 if(isConnectionAuthenticated)
                 {
-                    robot.moveMouse(x, y);
-                }
+                    if(event == "MouseMoveEvent")
+                        robot.moveMouse(x, y);
+                    else 
+                        robot.dragMouse(x, y)
+                } 
                 else
                 {
                     console.log("Recieved mouse move event but connection is not authenticated")
@@ -758,7 +781,8 @@ module.exports = {
 
             if(app.connectedList[i].isActive && !app.connectedList[i].isCentral && app.connectedList[i].isConnectionAuthenticated)
             {
-                if (event.EventName == "MouseMoveEvent") {
+                // Hassan --------- Added an Drag mouse event in the if condition
+                if (event.EventName == "MouseMoveEvent" || event.EventName == "MouseDragEvent")  {
                     app.connectedList[i].mouseSockObj.write(JSON.stringify(event));
                 }
                 else {

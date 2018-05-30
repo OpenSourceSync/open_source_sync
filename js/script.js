@@ -29,8 +29,7 @@ Keyboard_module.setInitVariables(connection_module)
 file_module.setInitVariables(connection_module)
 
 var myPasscode = store.get("CurrentSystemPassword")
-if(myPasscode==undefined)
-{
+if (myPasscode == undefined) {
   setPasswordDialog()
 }
 ////////// Initializing the connectedPC List
@@ -44,8 +43,7 @@ var list = [{
   isCentral: true,
   mouseSockObj: null,
   otherSockObj: null,
-  fileSockObj: null,
-  isConnectionAuthenticated: false
+  fileSockObj: null
 }]
 //////////////////////////////////////////////
 var draggable = require('vuedraggable');
@@ -65,15 +63,7 @@ var app = new Vue({
     sslState: 'disabled',
     connectionState: 'Inactive',
     selectList: [],
-    bindingList: [{
-        action: 'Copy',
-        binding: 'Ctrl + C'
-      },
-      {
-        action: 'Paste',
-        binding: 'Ctrl + V'
-      }
-    ],
+    bindingList: [],
     connectedList: list,
     filesBeingOfferedList: [], //[fileID, path]
     filesBeingAcceptedList: [], //[fileID, path]
@@ -164,46 +154,71 @@ var app = new Vue({
     showPassword: function() { // NEW CHANGE
       connection_module.showPasswordDialog();
     },
-    setPassword: function () {
+    setPassword: function() {
       setPasswordDialog();
+    },
+    updateKeys: function() {
+      store.set('customKeys', this.bindingList)
     }
   }
 });
 clipboard_module.startHandlingClipboardEvents() // handle clipboard event in either case(connected/unconnected)
 
-function handleFileDropEventInRenderer(arg){
+function handleFileDropEventInRenderer(arg) {
   // console.log("Handling file drop event in renderer");
   file_module.handleFileDropEvent(arg);
 }
+
 function setPasswordDialog() {
-    swal({
-      title: 'Enter Passcode for this system',
-      input: 'password',
-      backdrop: true,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      showCancelButton: true,
-      confirmButtonText: 'Update'
-    }).then((result) => {
-      const toast = swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000
+  swal({
+    title: 'Enter Passcode for this system',
+    input: 'password',
+    backdrop: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showCancelButton: true,
+    confirmButtonText: 'Update'
+  }).then((result) => {
+    const toast = swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+    if (result.value != '') {
+      store.set("CurrentSystemPassword", result.value)
+      toast({
+        type: 'success',
+        title: 'Passcode saved successfully'
+      })
+    } else {
+      toast({
+        type: 'error',
+        title: 'Passcode save failed'
       });
-      if (result.value != '') {
-        store.set("CurrentSystemPassword", result.value)
-        toast({
-          type: 'success',
-          title: 'Passcode saved successfully'
-        })
-      } else {
-        toast({
-          type: 'error',
-          title: 'Passcode save failed'
-        });
-      }
-    })
-  }
+    }
+  })
+}
 //console.log("File Path: ", app.getPath("userData"));
 
+var customKeys = store.get('customKeys');
+console.log(customKeys);
+if (customKeys === undefined) {
+  var def = [
+    {
+      action: 'Copy',
+      binding: 'Ctrl + C'
+    },
+    {
+      action: 'Paste',
+      binding: 'Ctrl + V'
+    }
+  ];
+
+  store.set('customKeys', def)
+  app.bindingList = def;
+} else {
+  app.bindingList = customKeys;
+}
+
+console.log('SCRIPT JS ENDED')

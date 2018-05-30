@@ -183,10 +183,29 @@ function startIOHookMouseHandlers()
         }
     });
 
-    hook.on("mouseclick", event => {
-        event["EventName"] = "MouseClickEvent";
+    //---------Hassan-----------
+    
+    // hook.on("mouseclick", event => {
+    //     event["EventName"] = "MouseClickEvent";
+    //     connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
+    // });
+
+    hook.on('mousedown', event => {
+        event["EventName"] = "MouseDownEvent";
         connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
-    });
+    })
+
+    hook.on('mouseup', event => {
+        event["EventName"] = "MouseUpEvent";
+        connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
+    })
+
+    hook.on('mousedrag', event => {
+        event["EventName"] = "MouseDragEvent";
+        connectionModule.sendMouseMovementEventToCurrentlyActiveSystem(event)
+    })
+
+    //---------Hassan-----------
 
     console.log("Attaching IOHook Mouse")
     hook.start();
