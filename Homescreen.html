@@ -27,13 +27,19 @@
             <a href="#" v-on:click="bindingsClick" class="waves-effect waves-light btn">
                 <div class="bdiv">
                     <i class="material-icons">keyboard</i>
-                    <p>Key Bindings</p>
+                    <p>Shortcuts</p>
                 </div>
             </a>
             <a href="#" v-on:click="securityClick" class="waves-effect waves-light btn">
                 <div class="bdiv">
                     <i class="material-icons">security</i>
                     <p>Security</p>
+                </div>
+            </a>
+            <a href="#" v-on:click="downloadClick" class="waves-effect waves-light btn">
+                <div class="bdiv">
+                  <i class="material-icons">archive</i>
+                  <p>Downloads</p>
                 </div>
             </a>
         </div>
@@ -94,7 +100,7 @@
                             <div class="sk-cube3 sk-cube"></div>
                         </div>
                     </transition>
-                    <a href="#" v-on:click="searchDevices" class="waves-effect waves-light btn" style="width:100%;">Add a PC</a>
+                    <a href="#" v-on:click="searchDevices" class="waves-effect waves-light btn" style="width:100%;">Add or Remove a PC</a>
                 </div>
                 <div class="footer">
                     <p>Status: {{ connectionState }}</p>
@@ -139,7 +145,10 @@
                             <tr v-for="item in selectList">
                                 <td> {{item.name}} </td>
                                 <td> {{item.ip}} </td>
-                                <td><a href="#" class="waves-effect waves-light btn" v-on:click="addSelected(item)">Add</a></td>
+                                <td>
+                                  <a href="#" class="waves-effect waves-light btn" v-if="!(connectedList.includes(item))" v-on:click="addSelected(item)">Add</a>
+                                  <a href="#" class="waves-effect waves-light btn" v-if="connectedList.includes(item)" v-on:click="removeSelected(item)">Remove</a>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -152,11 +161,37 @@
             </div>
             <div v-if="securityP" class="main-content">
                 <p>Password</p>
-                <a href="#" class="waves-effect waves-light btn">Show</a>
-                <a href="#" class="waves-effect waves-light btn">Change</a>
+                <a href="#" class="waves-effect waves-light btn" v-on:click="showPassword">Show</a>
+                <a href="#" class="waves-effect waves-light btn" v-on:click="setPassword">Change</a>
                 <br/>
                 <p>SSL Encryption</p>
                 <button class="waves-effect waves-light btn" style="width: 80%;" v-on:click="toggleSSL"> {{ sslState }} </button>
+                <div class="footer">
+                    <p>Status: {{ connectionState }}</p>
+                </div>
+            </div>
+            <div v-if="downloadP" class="main-content">
+                <div class="container" style="max-height: 75%; overflow-y: auto;">
+                    <br/>
+                    <table class="highlight centered">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Size</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in uiFilesAvailableList">
+                                <td> {{item.filename}} </td>
+                                <td> {{item.fileSize}} </td>
+                                <td>
+                                  <a href="#" class="waves-effect waves-light btn" v-on:click="downloadSelected(item)">Save</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <div class="footer">
                     <p>Status: {{ connectionState }}</p>
                 </div>

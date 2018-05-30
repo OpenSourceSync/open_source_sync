@@ -1,0 +1,50 @@
+<style>
+  #drag-file {
+    background-color: #2F688D;
+    color: white;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  #image {
+    position: absolute;
+    height: 60%;
+    width: 60%;
+    top:20%;
+    bottom:20%;
+    left:20%;
+    right:20%;
+  }
+</style>
+
+<div id="drag-file">
+  <img id="image" src="./grab.png">
+</div>
+
+<script>
+  const {ipcRenderer} = require('electron')
+
+  var holder = document.getElementById('drag-file');
+
+  holder.ondragover = () => {
+    return false;
+  };
+
+  holder.ondragleave = () => {
+    return false;
+  };
+
+  holder.ondragend = () => {
+    return false;
+  };
+
+  holder.ondrop = (e) => {
+    e.preventDefault();
+    ipcRenderer.send('fileDropped', e.dataTransfer.files[0].path);
+    return false;
+  };
+</script>

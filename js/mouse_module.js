@@ -58,7 +58,7 @@ function startIOHookMouseHandlers()
             //console.log("Starting transparent screen")
             if(transparentScreen==null)
             {
-                transparentScreen = spawn('/media/ferhan/Education_material_and_setups/Qt/Projects/Test/build-transparentScreenTest-Desktop_Qt_5_10_1_GCC_64bit-Release/transparentScreenTest', []);
+                //transparentScreen = spawn('/media/ferhan/Education_material_and_setups/Qt/Projects/Test/build-transparentScreenTest-Desktop_Qt_5_10_1_GCC_64bit-Release/transparentScreenTest', []);
                 //console.log("Starting transparent screen")
             }
         }
@@ -132,24 +132,28 @@ function startIOHookMouseHandlers()
             if(violated=="left" && (violatorIndex!=0 && violatorIndex!=centralIndex+1))
             {
                 // transfer control to the system on the left of violator
-                openFilter()
-                app.connectedList[violatorIndex].isActive=false;
-                app.connectedList[violatorIndex-1].isActive=true;
-                event["EventName"] = "MouseMoveEvent";
-                event.x = 0;
-                robot.moveMouse(3, event.y);
+                if(app.connectedList[violatorIndex-1].isConnectionAuthenticated) {
+                    openFilter()
+                    app.connectedList[violatorIndex].isActive=false;
+                    app.connectedList[violatorIndex-1].isActive=true;
+                    event["EventName"] = "MouseMoveEvent";
+                    event.x = 0;
+                    robot.moveMouse(3, event.y);
+                }
             }
             // ->if violated=right && violator is not last system on right and not next to central system towards left then
             //          start sending events to the system on the right of violator
             if(violated=="right" && (violatorIndex!=app.connectedList.length-1 && violatorIndex!=centralIndex-1))
             {
                 // transfer control to the system on the right of violator
-                openFilter()
-                app.connectedList[violatorIndex].isActive=false;
-                app.connectedList[violatorIndex+1].isActive=true;
-                event["EventName"] = "MouseMoveEvent";
-                event.x = 0;
-                robot.moveMouse(3, event.y);
+                if(app.connectedList[violatorIndex+1].isConnectionAuthenticated) {
+                    openFilter()
+                    app.connectedList[violatorIndex].isActive=false;
+                    app.connectedList[violatorIndex+1].isActive=true;
+                    event["EventName"] = "MouseMoveEvent";
+                    event.x = 0;
+                    robot.moveMouse(3, event.y);
+                }
             }
             // ->if violated=left && violator is not last system on left or right BUT IS next to the central system
             //          towards right then stop sending events

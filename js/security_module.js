@@ -28,11 +28,7 @@ function listenClipboard()
         clipboard_content = new_clip
         handleClipboardChange(clipboard_content.toString());
     }
-    try {
-        timeoutGenerator=setTimeout(listenClipboard, 100)
-    } catch (error) {
-        console.log("setTimeout error");
-    }
+    timeoutGenerator=setTimeout(listenClipboard, 100)
 }
 module.exports = {
     setInitVariables:function(connectionModuleVal){

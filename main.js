@@ -1,8 +1,9 @@
 const electron = require('electron')
 var keypress = require('keypress');
-var conn = new require('./js/connection_module.js')
+//var conn = new require('./js/connection_module.js')
 var $ = jQuery = require('./jquery.min.js')
 const {globalShortcut} = require('electron')
+
 //var robot = require("robotjs");
 // Module to control application life.
 const app = electron.app
@@ -11,6 +12,10 @@ const BrowserWindow = electron.BrowserWindow
 
 const path = require('path')
 const url = require('url')
+
+process.on('uncaughtException', (err) => {
+  console.log(err);
+})
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -25,7 +30,7 @@ function createWindow() {
     backgroundColor: '#0A2435',
     show: false
   })
-
+  
   splashWindow = new BrowserWindow({
     parent: mainWindow,
     width: 370,
@@ -53,7 +58,7 @@ function createWindow() {
     mainWindow.maximize()
     mainWindow.show()
     setTimeout(function () { splashWindow.close() }, 1000);
-    conn.initialize()
+    //conn.initialize()
   })
 
   // Emitted when the window is closed.
@@ -88,7 +93,8 @@ app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    app.quit()
+    console.log("All windows closed")
+    electron.app.quit()
   }
 })
 
@@ -99,3 +105,11 @@ app.on('activate', function () {
     createWindow()
   }
 })
+
+const { ipcMain } = require('electron')
+ipcMain.on('fileDropped', (event, arg) => {
+  console.log("File drop event recieved for file:  ", arg)
+  //event.sender.send('handleFileDropped', arg);
+  //BrowserWindow.fromId(mainWindow.id).webContents.send(arg);
+  mainWindow.webContents.send('sendToRenderer', arg);
+});

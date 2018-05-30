@@ -2,19 +2,35 @@ const path = require('path')
 const url = require('url')
 const os = require('os')
 const net = require('net')
-var PORTMOUSE= 12345;
-var PORTOTHER= 12346;
+const fs = require('fs')
+var swal = require('sweetalert2')
+
+var store = null;
+
+var PORTMOUSE= 12345
+var PORTOTHER= 12346
+var PORTFILE = 12347
 var delimeter = "~~~";
 var bonjour = require('bonjour')()
 const {clipboard} = require('electron');
+const filesizeconverter = require('filesize')
+const file_module = require('./file_module.js')
 var robot = require("robotjs")
+var md5 = require("md5")
 var connectedPCsMouse = []
 var connectedPCsOthers = []
 var connectedPCsList
 
 var listOfActiveOSSHosts = []
+
 var serverMouse
 var serverOthers
+var serverFile
+
+var clientMouse
+var clientOthers
+var clientFile
+var isConnectionAuthenticated = false
 
 var keysList = []
 
@@ -177,10 +193,210 @@ function handleEvent(data)
         //console.log(button + " clicked");
         robot.mouseClick(button == 1 ? "left" : "right");
     }
+    else if (event == "FileAvailableEvent") {
+        console.log('Recieved file available event')
+        var fileID = jsonObj.fileID;
+        var filename = jsonObj.filename;
+        var fileSize = filesizeconverter(jsonObj.fileSize);
+        console.log("Running")
+        var senderSystem = jsonObj.senderSystem;
+        this.app.uiFilesAvailableList.push(
+            {'filename': filename, 'senderSystem': senderSystem, 'fileSize': fileSize, 'fileID': fileID})//[filename, senderSystem, fileID, fileSize]
+    }
+    else if (event == "StartSendingFileEvent") {
+        console.log('Recieved StartSendingFileEvent')
+        var fileID = jsonObj.fileID;
+        var recieverSystem = jsonObj.recieverSystem;
+        //start sending file
+        //file_module.startSendingFile(fileID, recieverSystem)
+        app.filesBeingOfferedList.forEach(function(element) {
+            if (element.fileID == fileID) {
+              var path = element.path;
+              fs.readFile(path, {
+                encoding: 'utf-8'
+              }, function(err, data) {
+                if (!err) {
+                  // console.log('received data: ' + data);
+                  var fileData = {
+                    'fileID': fileID,
+                    'fileContent': data.toString(),
+                    'EventName': 'FileContent', 
+                    'senderID' : require('./connection_module.js').getMyIP()
+                  }
+                  require('./connection_module.js').sendFileEventToSpecifiedSystem(fileData, recieverSystem)
+                } else {
+                  console.log(err);
+                }
+              });
+            }
+        });
+    }
+    else if (event == "FileContent") {
+        // recieve file
+        // check the id and save file if id matches with recList ID
+        var shouldRemove;
+        var FD;
+        app.filesBeingAcceptedList.forEach(function(element) {
+            if(element.fileID == jsonObj.fileID) {
+
+                app.uiFilesAvailableList.forEach(function(availableFile) {
+                    if(element.fileID == availableFile.fileID 
+                        && jsonObj.senderID==availableFile.senderSystem) {
+
+                        var path = element.path.toString()
+                        fs.open(path, 'w', function(err, fd) {
+                            FD = fd;
+                            console.log('pathawiodhioawdaiowhdiawhda: ', path)
+                            console.log('Fd small: ', fd);
+                            console.log('FD large: ', FD);
+                            writeToFile(fd, jsonObj.fileContent.toString());
+                        });
+                        var senderSystem = availableFile.senderSystem;// this variable is not
+                            // being used here because we are assuming that only central system will send file
+                        var event = {
+                            'fileID': element.fileID,
+                            'EventName': 'ConfirmFileRecieved'
+                        }
+                        clientOthers.write(JSON.stringify(event) + delimeter);
+                        shouldRemove = element;
+                        shouldRemoveAvailableFile = availableFile
+                    }
+                });
+            }
+        });
+        if(shouldRemove) {
+            var index = app.filesBeingAcceptedList.indexOf(shouldRemove);
+            if (index > -1) {
+                app.filesBeingOfferedList.splice(index, 1);
+            }
+            var indexAvailableFile = app.uiFilesAvailableList.indexOf(shouldRemoveAvailableFile);
+            if (indexAvailableFile > -1) {
+                app.uiFilesAvailableList.splice(indexAvailableFile, 1);
+            }
+        }
+        else {
+            console.log("NO element to remove from filesBeingOfferedList");
+        }
+    }
+    else if (event == "ConfirmFileRecieved") {
+        console.log('Recieved FileRecievedConfirmation')
+        var fileID = jsonObj.fileID;
+        var shouldRemove = 0
+        for(var i=0; i<app.filesBeingOfferedList.length; i++)
+        {
+            if(app.filesBeingOfferedList[i].fileID==fileID)
+            {
+                shouldRemove = i
+            }
+        }
+        var index = app.filesBeingOfferedList.indexOf(shouldRemove);
+        if (index > -1) {
+            app.filesBeingOfferedList.splice(index, 1);
+        }
+    }
+    else if(event == "ProvidePasscode") {
+        // check for already stored passcode against event.MyName
+        // if found connection_module.
+        console.log("recieved ProvidePasscode")
+        console.log("myname : ", jsonObj.MyName)
+        var alreadyStoredPasscode = store.get(jsonObj.MyName)
+        console.log("alreadyStoredPasscode : ", alreadyStoredPasscode)
+        if(alreadyStoredPasscode==undefined)
+        {
+            require('./connection_module').loginDialog(jsonObj.MyName)
+        }
+        else
+        {
+            require('./connection_module').authenticatePasscodeForSpecifiedSystem(alreadyStoredPasscode, jsonObj.MyName)
+        }
+    }
+    else if(event == "AuthenticatePasscode") {
+        // match password with already stored password and return authenticated/unauthenticated message
+        console.log("recieved AuthenticatePasscode")
+        if(jsonObj.code==md5(store.get("CurrentSystemPassword").toString()))
+        {
+            isConnectionAuthenticated=true
+            require('./connection_module').sendAuthenticationRequestReplyToSpecifiedSystem(clientOthers, true)
+        }
+        else
+        {
+            isConnectionAuthenticated=false
+            require('./connection_module').sendAuthenticationRequestReplyToSpecifiedSystem(clientOthers, false)
+        }
+    }
+    else if(event == "AuthenticationRequestReply") {
+        console.log("recieved AuthenticationRequestReply")
+        const toast = swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        
+        if (jsonObj.status === true)
+        {
+            for(var i=0; i<app.connectedList.length; i++)
+            {
+                if(app.connectedList[i].name==jsonObj.MyName)
+                {
+                    console.log("NAME OF SYSTEM: ", app.connectedList[i].name);
+                    app.connectedList[i].isConnectionAuthenticated = true;
+                }
+            }
+            toast({
+                type: 'success',
+                title: 'Signed in successfully'
+            });
+        }
+        else
+        {
+            toast({
+                type: 'error',
+                title: 'Signed in failed'
+            });
+            setTimeout(function() {
+                require('./connection_module').loginDialog(jsonObj.MyName)
+            }, 1000)
+        }
+    }
+}
+function writeToFile(FD, fileContent)
+{
+    fs.write(FD, fileContent, "utf8", fileContent.length, function(err) {
+        if(err) {
+            console.log('Error at Writing File: ', err);
+        }
+    });
+    // fs.write(FD, jsonObj.fileContent.toString(), 0, jsonObj.fileContent.toString().length, function(err) {
+    //     if(err) {
+    //         console.log('Error at Writing File: ', err);
+    //     }
+    // });
 }
 module.exports = {
   foo: function () {
     console.log('TEST OUT')
+  },
+  loginDialog: function(targetSystemName) {
+    swal({
+      title: ('Enter Password for system '+targetSystemName),
+      input: 'password',
+      backdrop: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showCancelButton: true,
+      confirmButtonText: 'Login'
+    }).then(function(result){
+        require('./connection_module.js').authenticatePasscodeForSpecifiedSystem(result.value, targetSystemName)
+    })
+  },
+  showPasswordDialog: function () // NEW CHANGE
+  {
+    // UPDATE THE TEXT FIELD FROM STORE
+    swal({
+      title: 'Password',
+      text: store.get("CurrentSystemPassword") == undefined ? "Not set yet": store.get("CurrentSystemPassword"),
+    })
   },
   findActiveOSSDevicesOnLocalNetwork:function () {
 
@@ -192,6 +408,8 @@ module.exports = {
     console.log('CONN serverMouse STOPPED');
     delete serverOthers;
     console.log('CONN serverOthers STOPPED');
+    delete serverFile;
+    console.log('CONN serverFile STOPPED');
     // When user clicks on 'Add a PC' on the main machine it searches for all hosts having type 'OSSActiveHost'
     // at port 5867 it adds it to the listOfActiveOSSHosts
 
@@ -223,6 +441,7 @@ module.exports = {
     connectToAnOSSClient: function (ipAddress, hostname) {
         var client1 = new net.Socket();
         var client2 = new net.Socket();
+        var client3 = new net.Socket(); //Files
         console.log("connectiong to : ", ipAddress)
         client1.connect(PORTMOUSE , ipAddress, function() {
             console.log("Connected to mouse port: ", ipAddress)
@@ -232,12 +451,19 @@ module.exports = {
         client2.connect(PORTOTHER , ipAddress, function() {
             console.log("Connected to others port: ", ipAddress)
             // connectedPCsOthers.push({sockObj: client2, name: hostname,ip:ipAddress});
-            app.connectedList.push({name: hostname,ip:ipAddress, isActive:false, isCentral:false, mouseSockObj:client1, otherSockObj:client2})
+            //app.connectedList.push({name: hostname,ip:ipAddress, isActive:false, isCentral:false, mouseSockObj:client1, otherSockObj:client2})
             //app.connectedList.push({name: hostname,ip: ipAddress});
             //client.write('Hello serverMouse!');
 
         });
+        client3.connect(PORTFILE , ipAddress, function() {
+            console.log("Connected to file port: ", ipAddress)
+            // connectedPCsOthers.push({sockObj: client2, name: hostname,ip:ipAddress});
+            app.connectedList.push({name: hostname,ip:ipAddress, isActive:false, isCentral:false, mouseSockObj:client1, otherSockObj:client2, fileSockObj: client3, isConnectionAuthenticated: false})
+            //app.connectedList.push({name: hostname,ip: ipAddress});
+            //client.write('Hello serverMouse!');
 
+        });
         // Add a 'data' event handler for the client socket
         // data is what the serverMouse sent to this socket
         client1.on('data', function(data) {
@@ -266,12 +492,18 @@ module.exports = {
                 completeData=chunks[i]
             }
         });
+        client3.on('data', function(data) {
+            console.log('Client3 data');
+        });
         // Add a 'close' event handler for the client socket
         client1.on('close', function() {
             console.log('Client1 Connection closed');
         });
         client2.on('close', function() {
             console.log('Client2 Connection closed');
+        });
+        client3.on('close', function() {
+            console.log('Client3 Connection closed');
         });
 
         client1.on('error', function(err) {
@@ -280,15 +512,34 @@ module.exports = {
         client2.on('error', function(err) {
             console.log("Error at Client2: ", err);
         });
+        client3.on('error', function(err) {
+            console.log("Error at Client3: ", err);
+        });
     },
-
-    initialize: function ()
+    getMyIP:function()
     {
         var address, ifaces = require('os').networkInterfaces();
         for (var dev in ifaces) {
             ifaces[dev].filter((details) => details.family === 'IPv4' && details.internal === false ? address = details.address: undefined);
         }
-        var IP = address;
+        return address;
+    },
+    initialize: function (storeObject)
+    {
+        store = storeObject;
+
+        // ---------------------------- ELECTRON-STORE ------------------------
+        // var object = {
+        //     name: "system name",
+        //     password: "1234"
+        // }
+
+        // store.set(object.name, object.password);
+        // console.log("Password: ", store.get(object.name));
+        // store.delete(object.name);
+        // -----------------------------------------------------------
+        
+        var IP = this.getMyIP()
         console.log('HOST NAME : ' + os.hostname());
         //------------------------------------------------
 
@@ -299,7 +550,7 @@ module.exports = {
         //----------------------------------------Zubair
         serverMouse = net.createServer(function(sock){
             console.log(sock.remoteAddress,' client connected to mouse server')
-            global.clientMouse = sock
+            clientMouse = sock
             console.log("Clientmouse changed to : ", (clientMouse!=null))
             sock.on('connect', function(){
                 console.log("Connected to client on its request");
@@ -321,7 +572,14 @@ module.exports = {
 
                 var x = jsonObj.x;
                 var y = jsonObj.y;
-                robot.moveMouse(x, y);
+                if(isConnectionAuthenticated)
+                {
+                    robot.moveMouse(x, y);
+                }
+                else
+                {
+                    console.log("Recieved mouse move event but connection is not authenticated")
+                }
             });
             sock.on('close', function(){
                 console.log("Connection closed!");
@@ -334,8 +592,15 @@ module.exports = {
         //---------------------------------------
         serverOthers = net.createServer(function(sock){
             var completeData = ""
+            var isClientOtherNull = false
             console.log(sock.remoteAddress,' client connected to others server')
-            global.clientOthers = sock
+            if(clientOthers == null) {
+                isClientOtherNull = true;
+            }
+            clientOthers = sock
+            if(isClientOtherNull) {
+                require('./connection_module.js').askSpecifiedSystemForPasscode(clientOthers)
+            }
             console.log("Clientothers changed to : ", (clientOthers!=null))
             sock.on('connect', function(){
                 console.log("Connected to client on its request");
@@ -353,7 +618,74 @@ module.exports = {
                     //console.log(chunks.length)
                     completeData+=chunks[0]
                     // send complete data to handler Function
-                    handleEvent(completeData)
+                    var jsonObj = JSON.parse(completeData);
+                    if(jsonObj.EventName == "ProvidePasscode" || jsonObj.EventName == "AuthenticatePasscode" || jsonObj.EventName == "AuthenticationRequestReply") {
+                        handleEvent(completeData)
+                    }
+                    else {
+                        if(isConnectionAuthenticated) {
+                            handleEvent(completeData)
+                        }
+                    }
+                    var i=1
+                    for(; i<chunks.length-1; i++)
+                    {
+                        completeData=chunks[i]
+                        jsonObj = JSON.parse(completeData);
+                        // send complete data to handler Function
+                        if(jsonObj.EventName == "ProvidePasscode" || jsonObj.EventName == "AuthenticatePasscode" || jsonObj.EventName == "AuthenticationRequestReply") {
+                            handleEvent(completeData)
+                        }
+                        else {
+                            if(isConnectionAuthenticated) {
+                                handleEvent(completeData)
+                            }
+                        }
+                    }
+                    completeData=chunks[i]
+                }
+                //console.log("In data function: completeDate : ", completeData)
+                //completeData+=data.toString()
+            });
+            sock.on('close', function(){
+                console.log("Connection closed!");
+            });
+            sock.on('error', function(err) {
+                console.log("Error at SockOthers: ", err);
+            });
+        }).listen(PORTOTHER , IP);
+        console.log('Others connection serverOthers STARTED');
+
+        //-----------------------------------------------------------------------------
+        serverFile = net.createServer(function(sock){
+            var completeData = ""
+            console.log(sock.remoteAddress,' client connected to file server')
+            clientFile = sock
+            console.log("ClientFile changed to : ", (clientFile!=null))
+            sock.on('connect', function(){
+                console.log("Connected to client on its request");
+            });
+            sock.on('data', function(data){
+                data = data.toString()
+                if(data.indexOf(delimeter)==-1)
+                {
+                    completeData+=data
+                }
+                else
+                {
+                    var chunks = data.split(delimeter);
+                    //console.log("CHUNKS START")
+                    //console.log(chunks.length)
+                    completeData+=chunks[0]
+                    // send complete data to handler Function
+                    if(isConnectionAuthenticated)
+                    {
+                        handleEvent(completeData)
+                    }
+                    else
+                    {
+                        console.log("Recieved OthersEvent but connection is not authenticated")
+                    }
                     var i=1
                     for(; i<chunks.length-1; i++)
                     {
@@ -370,10 +702,11 @@ module.exports = {
                 console.log("Connection closed!");
             });
             sock.on('error', function(err) {
-                console.log("Error at SockOthers: ", err);
+                console.log("Error at SockFile: ", err);
             });
-        }).listen(PORTOTHER , IP);
-        console.log('Others connection serverOthers STARTED');
+        }).listen(PORTFILE , IP);
+        console.log('File connection serverFile STARTED');
+        //----------------------------------------------------------------------------------------
     },
     sendMouseMovementEventToAllConnected:function(event){
         //console.log("Sending mouse movement event to ", connectedPCsMouse.length, " systems")
@@ -394,14 +727,13 @@ module.exports = {
     },
     sendClipBoardSyncEventToAllConnected:function(latestClipBoardContent){
         //console.log("Sending clipboard synchronize event to ", connectedPCsOthers.length, " systems")
-        var clientOthers = require('electron').remote.getGlobal('clientOthers');
         if(clientOthers!=null)
         {
             console.log("Client others not null. Should send clipboard event back to client")
             var obj = {
-                "EventName": "ClipboardEvent",
-                "text": latestClipBoardContent
-            }
+                    "EventName": "ClipboardEvent",
+                    "text": latestClipBoardContent
+                }
             clientOthers.write(JSON.stringify(obj) + delimeter);
         }
         else
@@ -424,7 +756,7 @@ module.exports = {
         {
             //console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
 
-            if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
+            if(app.connectedList[i].isActive && !app.connectedList[i].isCentral && app.connectedList[i].isConnectionAuthenticated)
             {
                 if (event.EventName == "MouseMoveEvent") {
                     app.connectedList[i].mouseSockObj.write(JSON.stringify(event));
@@ -435,20 +767,6 @@ module.exports = {
             }
         }
     },
-    // sendClipBoardSyncEventToCurrentlyActiveSystem:function(latestClipBoardContent){
-    //     for(var i=0; i<app.connectedList.length; i++)
-    //     {
-    //         // console.log("testing : ",app.connectedList.length,app.connectedList[i].isActive, app.connectedList[i].isCentral)
-    //         if(app.connectedList[i].isActive && !app.connectedList[i].isCentral)
-    //         {
-    //             var obj = {
-    //                 "EventName": "ClipboardEvent",
-    //                 "text": latestClipBoardContent
-    //             }
-    //             app.connectedList[i].otherSockObj.write(JSON.stringify(obj));
-    //         }
-    //     }
-    // },
     sendKeyboardEventToCurrentlyActiveSystem:function(event){
         event["platform"] = os.platform()
         for(var i=0; i<app.connectedList.length; i++)
@@ -459,5 +777,72 @@ module.exports = {
                 app.connectedList[i].otherSockObj.write(JSON.stringify(event) + delimeter);
             }
         }
+    },
+    sendFileEventToAllConnectedSystems:function(event){
+        for(var i=0; i<app.connectedList.length; i++)
+        {
+            if(app.connectedList[i].isCentral==false)
+            {
+                app.connectedList[i].otherSockObj.write(JSON.stringify(event) + delimeter);
+            }
+        }
+    },
+    sendFileEventToSpecifiedSystem:function(event, specifiedSystem){
+        console.log("sending file event to all systems")
+        var systemFound = false
+        for(var i=0; i<app.connectedList.length; i++)
+        {
+            if(app.connectedList[i].ip==specifiedSystem)
+            {
+                app.connectedList[i].otherSockObj.write(JSON.stringify(event) + delimeter);
+                console.log("sending to system : ", app.connectedList[i].name)
+                systemFound=true
+            }
+        }
+        if(!systemFound)
+        {
+            if(clientOthers!=null) // assuming the client is the specified system
+            {
+                clientOthers.write(JSON.stringify(event) + delimeter);
+                console.log("sending to client system")
+            }
+            else
+            {
+                console.log("Recieved sendFileEventToSpecifiedSystem but not such system available");
+            }
+        }
+    },
+    askSpecifiedSystemForPasscode:function(sockObj)
+    {
+        var message = {
+            EventName: "ProvidePasscode",
+            MyName: os.hostname()
+        }
+        console.log("sending askSpecifiedSystemForPasscode : ", message)
+        sockObj.write(JSON.stringify(message) + delimeter);
+    },
+    authenticatePasscodeForSpecifiedSystem:function(passcode, systemName){
+        var message = {
+            EventName: "AuthenticatePasscode",
+            code: md5(passcode)
+        }
+        for(var i=0; i<app.connectedList.length; i++)
+        {
+            if(app.connectedList[i].name==systemName)
+            {
+                console.log("sending authenticatePasscodeForSpecifiedSystem")
+                app.connectedList[i].otherSockObj.write(JSON.stringify(message) + delimeter);
+                console.log("sending to system : ", app.connectedList[i].name)
+            }
+        }
+    },
+    sendAuthenticationRequestReplyToSpecifiedSystem:function(systemSockObj, authStatus){
+        var message = {
+            EventName: "AuthenticationRequestReply",
+            MyName: os.hostname(),
+            status: authStatus
+        }
+        console.log("sending sendAuthenticationRequestReplyToSpecifiedSystem")
+        systemSockObj.write(JSON.stringify(message) + delimeter);
     }
 };

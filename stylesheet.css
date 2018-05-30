@@ -13,27 +13,30 @@ body {
   right: 0;
 }
 #sidebar {
-  width: 20%;
+  width: 15%;
   background-color: #333;
   float: left;
   height: 100%;
 }
+
 #sidebar a {
   width: 100%;
-  height: 25%;
+  height: 20%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 0px;
   background-color: #2F688D;
+  box-shadow: inset 0px 0px 10px 0px rgba(106,184,235,1) !important;
 }
+
 #sidebar a:hover {
   box-shadow: 5px 0px 5px 0px rgba(106, 184, 235, 0.5) !important;
   background-color: #6AB8EB;
 }
 .main {
   display: table;
-  width: 80%;
+  width: 85%;
   background-color: #0A2435;
   float: right;
   height: 100%;
@@ -84,17 +87,23 @@ body {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
-  width: 80%;
+  width: 85%;
   height: 10%;
   background-color: #333;
   font-size: 1vw;
   line-height: 1.0;
 }
+
 .bdiv i {
   margin-top: 50%;
   vertical-align: middle;
-  font-size: 6vw;
+  font-size: 4vw;
 }
+
+.bdiv p {
+  font-size: 2vh;
+}
+
 table.highlight > tbody > tr:hover {
   background-color: #2F688D;
 }
