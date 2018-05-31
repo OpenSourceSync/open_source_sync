@@ -155,7 +155,7 @@ function setNewBinding(prev){
     })
     if(flag1)
     {
-        if(temp1.contains(undefined))
+        if(temp1 != undefined)
         if(globalShortcut.isRegistered(temp1))
         {
             removeShortcut(temp1)
@@ -163,7 +163,7 @@ function setNewBinding(prev){
     }
     if(flag2)
     {
-        if(temp2.contains(undefined))
+        if(temp2 != undefined)
         if(globalShortcut.isRegistered(temp2))
         {
             removeShortcut(temp2)

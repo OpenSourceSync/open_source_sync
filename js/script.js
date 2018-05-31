@@ -169,7 +169,7 @@ var app = new Vue({
       var previous = store.get('customKeys');
       store.set('customKeys', this.bindingList);
 
-      keyboard_module.setCustomKey(previous);
+      Keyboard_module.setCustomKey(previous);
     },
     destroyConnections: function() {
       connection_module.resetConnections();
