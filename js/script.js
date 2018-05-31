@@ -25,7 +25,7 @@ const {
 } = require('electron').remote;
 mouse_module.setInitVariables(connection_module)
 clipboard_module.setInitVariables(connection_module)
-Keyboard_module.setInitVariables(connection_module)
+Keyboard_module.setInitVariables(connection_module,store)
 file_module.setInitVariables(connection_module)
 
 var myPasscode = store.get("CurrentSystemPassword")
