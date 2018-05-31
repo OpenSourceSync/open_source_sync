@@ -148,8 +148,8 @@
                                 <td> {{item.name}} </td>
                                 <td> {{item.ip}} </td>
                                 <td>
-                                  <a href="#" class="waves-effect waves-light btn" v-if="!(connectedList.includes(item))" v-on:click="addSelected(item)">Add</a>
-                                  <a href="#" class="waves-effect waves-light btn" v-if="connectedList.includes(item)" v-on:click="removeSelected(item)">Remove</a>
+                                  <a href="#" class="waves-effect waves-light btn" v-if="!(connected(item.ip))" v-on:click="addSelected(item)">Add</a>
+                                  <a href="#" class="waves-effect waves-light btn" v-if="connected(item.ip)" v-on:click="removeSelected(item)">Remove</a>
                                 </td>
                             </tr>
                         </tbody>

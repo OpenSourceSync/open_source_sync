@@ -131,13 +131,21 @@ var app = new Vue({
     },
     addSelected: function(item) {
       connection_module.connectToAnOSSClient(item.ip, item.name);
-      /*this.connectedList.push({
-          name: item.name,
-          ip: item.ip
-      });*/
     },
     removeSelected: function(item) {
       // INSERT FUNCTION HERE WHICH REMOVES THE CONNECTED DEVICE FROM LIST AND DISCONNECT
+    },
+    connected: function(ip) {
+      var flag = false;
+
+      this.connectedList.forEach((data) => {
+        if (ip === data.ip)
+        {
+          flag = true;
+        }
+      })
+
+      return flag;
     },
     downloadSelected: function(item) {
       var dir = dialog.showSaveDialog({
@@ -214,12 +222,14 @@ if (customKeys === undefined) {
     {
       action: 'Copy',
       binding: 'Ctrl + C',
-      code: '777'
+      code: '777',
+      roboCode: ['c', ['control']]
     },
     {
       action: 'Paste',
       binding: 'Ctrl + V',
-      code: '778'
+      code: '778',
+      roboCode: ['v', ['control']]
     }
   ];
 
