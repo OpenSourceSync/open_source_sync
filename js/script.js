@@ -25,7 +25,11 @@ const {
 } = require('electron').remote;
 mouse_module.setInitVariables(connection_module)
 clipboard_module.setInitVariables(connection_module)
+<<<<<<< Updated upstream
 Keyboard_module.setInitVariables(connection_module,store)
+=======
+Keyboard_module.setInitVariables(connection_module, store)
+>>>>>>> Stashed changes
 file_module.setInitVariables(connection_module)
 
 var myPasscode = store.get("CurrentSystemPassword")
@@ -130,7 +134,54 @@ var app = new Vue({
       file_module.startHandlingFileDropEvents()
     },
     addSelected: function(item) {
+      console.log("Connected list before : ", this.connectedList)
       connection_module.connectToAnOSSClient(item.ip, item.name);
+<<<<<<< Updated upstream
+=======
+      console.log("Connected list after : ", this.connectedList)
+      /*this.connectedList.push({
+          name: item.name,
+          ip: item.ip
+      });*/
+>>>>>>> Stashed changes
+    },
+    connected: function(ip) {
+      var flag = false;
+
+      this.connectedList.forEach((data) => {
+        if (ip === data.ip)
+        {
+          flag = true;
+        }
+      })
+
+      return flag;
+    },
+    stopOSS: function() {
+      clipboard_module.stopHandlingClipboardEvents()
+      Keyboard_module.stopHandlingKeyboardEvents()
+      mouse_module.stopHandlingMouseEvents()
+      file_module.stopHandlingFileDropEvents()
+      console.log("All hooks disabled")
+      for(var i=0; i<this.connectedList.length; i++)
+      {
+        if(this.connectedList[i].isActive==true && this.connectedList[i].isCentral==false)
+        {
+          this.connectedList[i].isActive==true
+        }
+        if(this.connectedList[i].isCentral==true)
+        {
+          this.connectedList[i].isActive==true
+        }
+      }
+      console.log("Connedted list state after pausing : ", this.connectedList)
+    },
+    resumeOSS:function(){
+      clipboard_module.stopHandlingClipboardEvents()
+      mouse_module.startHandlingMouseEvents()
+      Keyboard_module.startHandlingKeyboardEvents()
+      file_module.startHandlingFileDropEvents()
+      console.log("Connedted list state after resuming : ", this.connectedList)
     },
     removeSelected: function(item) {
       // INSERT FUNCTION HERE WHICH REMOVES THE CONNECTED DEVICE FROM LIST AND DISCONNECT

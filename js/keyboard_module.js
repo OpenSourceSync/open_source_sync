@@ -5,7 +5,11 @@ var robot = require('robotjs')
 var flag = true;
 var customKeybind = []
 var store
+<<<<<<< Updated upstream
 var previous = null
+=======
+var previous = null;
+>>>>>>> Stashed changes
 
 var shortcuts = [
     { 
@@ -41,11 +45,12 @@ var shortcuts = [
 
 function startIOHookKeyboardHandlers()
 {
-    if(hook)
-    {
-        delete hook
+    if(hook) {
+        hook.start()
     }
-    hook = new require('iohook')
+    else {
+        hook = new require('iohook')
+    }
 
     hook.on("keydown", event => {
         event["EventName"] = "KeyboardKeyPressEvent";
@@ -80,6 +85,7 @@ function startIOHookKeyboardHandlers()
 
 function registerShortcuts()
 {
+<<<<<<< Updated upstream
 //    registerShortcut('CmdOrCtrl+V', '778' , ['v', ['control']] );
 //    registerShortcut('CmdOrCtrl+C', '777' , ['c', ['control']] );
     shortcuts.forEach(element => {
@@ -98,6 +104,16 @@ function registerShortcuts()
         setNewBinding(store.get('customKeys'))
     }
 
+=======
+    shortcuts.forEach(element => {
+        registerShortcut(element.key, element.code, element.roboCode)
+    })
+   /* 
+    if(store.get('customKeys') != undefined)
+    {    
+        setNewBinding(store.get('customKeys'))
+    }*/
+>>>>>>> Stashed changes
 }
 
 function removeShortcut(key)
@@ -118,6 +134,7 @@ function registerShortcut(key, code, roboCode)
 {
     const ret = globalShortcut.register(key, () => {
         removeShortcut(key)
+        console.log(key, code, roboCode);
         robot.keyTap(roboCode[0],roboCode[1]);
         sendKey(code)
         registerShortcut(key, code, roboCode);
@@ -186,7 +203,10 @@ function setNewBinding(prev){
         });
     }
 }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 module.exports = {
     setInitVariables:function(connectionModuleVal, storeObj){
         connectionModule=connectionModuleVal
@@ -196,10 +216,14 @@ module.exports = {
         startIOHookKeyboardHandlers()
     },
     stopHandlingKeyboardEvents:function(){
+<<<<<<< Updated upstream
         if(hook)
         {
             delete hook
         }
+=======
+        hook.stop()
+>>>>>>> Stashed changes
     },
     setCustomKey:function(prev){
         previous = prev

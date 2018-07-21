@@ -50,8 +50,13 @@
                     <h2>Welcome to OpenSourceSync</h2>
                 </div>
                 <br/>
+<<<<<<< Updated upstream
                 <a href="#" class="waves-effect waves-light btn">Start</a>
                 <a href="#" class="waves-effect waves-light btn" v-on:click="destroyConnections">Stop</a>
+=======
+                <a href="#" v-on:click="resumeOSS"  class="waves-effect waves-light btn">Start</a>
+                <a href="#" v-on:click="stopOSS" class="waves-effect waves-light btn">Stop</a>
+>>>>>>> Stashed changes
                 <div class="footer">
                     <p>Status: {{ connectionState }}</p>
                 </div>
@@ -201,13 +206,19 @@
         </div>
     </div>
 
+    <script type="text/javascript" src="js/vue.js"></script>
+    <script type="text/javascript" src="js/script.js"></script>
     <script>
         window.$ = window.jQuery = require('./jquery.min.js');
+        
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.on('sendToRenderer', (event, arg) => {
+            //console.log("File drop event recieved for file IN HOMESCREEN:  ", arg)
+            handleFileDropEventInRenderer(arg);
+        });
     </script>
-    <script type="text/javascript" src="js/vue.js"></script>
     <script type="text/javascript" src="./hammer.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
-    <script type="text/javascript" src="js/script.js"></script>
 </body>
 
 </html>

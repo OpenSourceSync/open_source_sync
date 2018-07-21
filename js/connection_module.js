@@ -407,7 +407,14 @@ module.exports = {
       showCancelButton: true,
       confirmButtonText: 'Login'
     }).then(function(result){
-        require('./connection_module.js').authenticatePasscodeForSpecifiedSystem(result.value, targetSystemName)
+        if(result.value)
+        {
+            require('./connection_module.js').authenticatePasscodeForSpecifiedSystem(result.value, targetSystemName)
+        }
+        else if(result.dismiss === swal.DismissReason.cancel)
+        {
+            require('./connection_module.js').sendConnectionCloseReqToSpecifiedSystem(targetSystemName)
+        }
     })
   },
   showPasswordDialog: function () // NEW CHANGE
@@ -417,6 +424,9 @@ module.exports = {
       title: 'Password',
       text: store.get("CurrentSystemPassword") == undefined ? "Not set yet": store.get("CurrentSystemPassword"),
     })
+  },
+  resetConnections: function() {
+    swal('test function', 'resetConnections fn inside connection module')
   },
   findActiveOSSDevicesOnLocalNetwork:function () {
 
@@ -620,6 +630,7 @@ module.exports = {
             var completeData = ""
             var isClientOtherNull = false
             console.log(sock.remoteAddress,' client connected to others server')
+            console.log("clientOthers : ", clientOthers)
             if(clientOthers == null) {
                 isClientOtherNull = true;
             }
@@ -674,6 +685,9 @@ module.exports = {
                 //completeData+=data.toString()
             });
             sock.on('close', function(){
+                clientOthers=null
+                clientMouse = null
+                clientFile = null
                 console.log("Connection closed!");
             });
             sock.on('error', function(err) {
@@ -871,5 +885,21 @@ module.exports = {
         }
         console.log("sending sendAuthenticationRequestReplyToSpecifiedSystem")
         systemSockObj.write(JSON.stringify(message) + delimeter);
+    },
+    sendConnectionCloseReqToSpecifiedSystem(systemName)
+    {
+        var indexToDelete;
+        for(var i=0; i<app.connectedList.length; i++)
+        {
+            if(app.connectedList[i].name==systemName)
+            {
+                console.log("sending CloseServerConnection")
+                app.connectedList[i].otherSockObj.destroy()
+                app.connectedList[i].mouseSockObj.destroy()
+                app.connectedList[i].fileSockObj.destroy()
+                indexToDelete = i;
+            }
+        }
+        app.connectedList.splice(indexToDelete, 1);
     }
 };

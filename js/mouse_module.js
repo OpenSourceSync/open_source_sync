@@ -7,9 +7,11 @@ var transparentScreen
 function startIOHookMouseHandlers()
 {
     if(hook) {
-        delete hook
+        hook.start()
     }
-    hook = new require('iohook')
+    else {
+        hook = new require('iohook')
+    }
     const {screen} = require('electron').remote;
     const {BrowserWindow} = require('electron').remote;
     
@@ -58,8 +60,8 @@ function startIOHookMouseHandlers()
             //console.log("Starting transparent screen")
             if(transparentScreen==null)
             {
-                //transparentScreen = spawn('/media/ferhan/Education_material_and_setups/Qt/Projects/Test/build-transparentScreenTest-Desktop_Qt_5_10_1_GCC_64bit-Release/transparentScreenTest', []);
-                //console.log("Starting transparent screen")
+                transparentScreen = spawn('/media/farhan/Education_material_and_setups/BS_education_material/Semester 8/FYP-II/Final Phase/OSS_mouseDragTest/QtBinary/transparentScreenTest', []);
+                console.log("Starting transparent screen")
             }
         }
       }
@@ -219,9 +221,6 @@ module.exports = {
         console.log("Started listening mouse events!");
     },
     stopHandlingMouseEvents:function(){
-        if(hook)
-        {
-            delete hook
-        }
+        hook.stop()
     }
 }

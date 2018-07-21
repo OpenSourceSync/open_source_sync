@@ -36,9 +36,11 @@ function handleFileDropEventLocal(path) {
 
 function registerFileDropEvents() {
   if(hook) {
-    delete hook
+    hook.start()
   }
-  hook = new require('iohook')
+  else {
+      hook = new require('iohook')
+  }
   const { screen } = require('electron').remote;
   const { BrowserWindow } = require('electron').remote;
   
@@ -67,7 +69,7 @@ function registerFileDropEvents() {
   }
 
   function closeDragWin() {
-    win.close();
+    setTimeout(win.close, 500);
   }
   
   hook.on('mousedrag', event => {
@@ -118,11 +120,7 @@ module.exports = {
     console.log("Started handling fileddrop events")
   },
   stopHandlingFileDropEvents: function() {
-    if(hook)
-    {
-        delete hook
-    }
-    //iohook.stop()
+    hook.stop()
   },
   handleFileSaveEvent: function(path, availableFileObject) {
     app.filesBeingAcceptedList.push({
